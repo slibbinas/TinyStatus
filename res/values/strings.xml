@@ -6,5 +6,7 @@
     <string name="connecting">…</string>
     <string name="dash">—</string>
     <string name="tap_hint">Tap to refresh</string>
+    <!-- %1$d - sekundes nuo paskutinio sekmingo atsakymo -->
+    <string name="stale">no answer %1$ds</string>
     <string name="host">tinymaker.local</string>
 </resources>

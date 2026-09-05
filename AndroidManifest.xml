@@ -6,6 +6,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- requestNetwork be sito meta SecurityException. -->
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
 
     <!--
       usesCleartextTraffic BUTINA: nuo Android 9 paprastas http:// blokuojamas

@@ -30,6 +30,9 @@
             android:gravity="center"
             android:maxLines="1"
             android:textSize="18sp"
+            android:autoSizeTextType="uniform"
+            android:autoSizeMinTextSize="10sp"
+            android:autoSizeMaxTextSize="18sp"
             android:textStyle="bold"
             android:textColor="#2FD4B5"
             android:text="@string/connecting" />
