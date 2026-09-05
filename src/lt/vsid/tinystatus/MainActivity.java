@@ -2,6 +2,7 @@ package lt.vsid.tinystatus;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -23,9 +24,14 @@ import java.net.URL;
 /**
  * TinyMakerWiFi spausdintuvo busena ant riesto.
  *
- * Duomenys: GET http://tinymaker.local/api/status - visas atsakymas ~1.2 KB,
- * be jokios autentikacijos (patikrinta 2026-09-05 tiesiai is laikrodzio).
- * Vardas issisprendzia per marsrutizatoriaus DNS, tad NsdManager nereikia.
+ * Duomenys: GET /api/status - visas atsakymas ~1.2 KB, be jokios
+ * autentikacijos (patikrinta 2026-09-05 tiesiai is laikrodzio).
+ *
+ * VARDAS. ".local" is programeles NEVEIKIA: Android ta zona laiko mDNS ir per
+ * iprasta DNS jos neklausia, tad gaunam UnknownHostException, nors apvalkalo
+ * ping ta pati varda randa. Uztat marsrutizatorius atsako i "tinymaker.lan" ir
+ * i tiesiog "tinymaker". Todel laikom KANDIDATU sarasa ir isimenam ta, kuris
+ * suveike - taip isvengiam ir kietai irasyto IP, kuris pasikeistu per DHCP.
  *
  * Atnaujinimas: automatiskai kas REFRESH_MS, kol i ekrana ziurima, ir is karto
  * bakstelejus. Uzdarius - nieko, jokiu fono darbu: spausdinimas trunka
@@ -56,6 +62,18 @@ public class MainActivity extends Activity {
      *  peržiūros generavimas - ir tai NORMALU, ne gedimas. */
     private static final long STALE_MS = 12000;
     private static final long DEAD_MS = 45000;
+    /** Kiek laiko po spausdinimo dar rodom, kas buvo atspausdinta.
+     *
+     *  Printeris apie pabaiga NEPRANESA: /api/status tiesiog grizta i Idle, o
+     *  "model" istusteja. Todel isimenam patys ir laikom SharedPreferences,
+     *  kad prisiminimas islaikytu ir programeles uzdaryma.
+     *
+     *  Riba: jei spausdinimas baigesi, kol programele buvo uzdaryta ir mes to
+     *  nematem, pasakyti negalim - tokiu duomenu paprasciausiai nera. */
+    private static final long DONE_MS = 12L * 3600 * 1000;
+
+    /** Bandom is eiles; pirmas atsiliepes lieka naudojamas. */
+    private static final String[] HOSTS = {"tinymaker.lan", "tinymaker", "tinymaker.local"};
 
     private final Handler ui = new Handler(Looper.getMainLooper());
 
@@ -63,6 +81,8 @@ public class MainActivity extends Activity {
     private RingView ring;
     private volatile boolean visible = false;
     private volatile Network wifi = null;
+    private volatile String goodHost = null; // kuris vardas suveike
+    private SharedPreferences prefs;
     private long lastOkAt = 0;              // kada paskutini karta gavom atsakyma
     private String lastBody = null;         // ir ka jis sake
     private ConnectivityManager cm;
@@ -89,6 +109,7 @@ public class MainActivity extends Activity {
         ring = findViewById(R.id.ring);
 
         cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        prefs = getSharedPreferences("tinystatus", MODE_PRIVATE);
 
         findViewById(R.id.root).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -163,15 +184,21 @@ public class MainActivity extends Activity {
 
     /** Uzklausa atskirame gijoje - tinklas pagrindineje gijoje neleidziamas. */
     private void fetch() {
-        final String url = "http://" + getString(R.string.host) + "/api/status";
         new Thread(new Runnable() {
             @Override
             public void run() {
                 String body = null;
-                try {
-                    body = get(url);
-                } catch (Exception e) {
-                    Log.w(TAG, "uzklausa nepavyko: " + e);
+                for (String host : hostsToTry()) {
+                    try {
+                        body = get("http://" + host + "/api/status");
+                        if (!host.equals(goodHost)) {
+                            Log.i(TAG, "vardas veikia: " + host);
+                            goodHost = host;
+                        }
+                        break;
+                    } catch (Exception e) {
+                        Log.w(TAG, host + " nepavyko: " + e);
+                    }
                 }
                 final String result = body;
                 ui.post(new Runnable() {
@@ -184,6 +211,29 @@ public class MainActivity extends Activity {
                 });
             }
         }).start();
+    }
+
+    /** Zinomas veikiantis vardas pirmas, po jo - visi likusieji. */
+    /** "1h 5m" arba "5m" - kiek praejo nuo pabaigos. */
+    private static String since(long ms) {
+        long m = ms / 60000;
+        return m >= 60 ? (m / 60) + "h " + (m % 60) + "m" : m + "m";
+    }
+
+    private String[] hostsToTry() {
+        String good = goodHost;
+        if (good == null) {
+            return HOSTS;
+        }
+        String[] order = new String[HOSTS.length];
+        order[0] = good;
+        int i = 1;
+        for (String h : HOSTS) {
+            if (!h.equals(good)) {
+                order[i++] = h;
+            }
+        }
+        return order;
     }
 
     private String get(String url) throws Exception {
@@ -244,17 +294,37 @@ public class MainActivity extends Activity {
             int cur = j.optInt("currentLayer", 0);
             int total = j.optInt("totalLayers", 0);
 
-            state.setText(j.optString("state", "?").toUpperCase());
-            state.setTextColor(paused ? 0xFFF5C542 : 0xFF2FD4B5);
-
             String name = j.optString("model", "");
-            model.setText(name.isEmpty() ? getString(R.string.dash) : name);
 
-            // layerText jau paruostas ("123 / 240"), o kai nespausdinama - "0 / 0"
-            layer.setText(total > 0 ? j.optString("layerText", "—")
-                                    : getString(R.string.dash));
-            remaining.setText(total > 0 ? j.optString("remainingTime", "—")
+            if (total > 0) {
+                // Spausdina: isimenam, kas ir kiek - printeris to nesako, kai baigia.
+                prefs.edit().putString("m", name).putInt("t", total).putLong("end", 0).apply();
+            } else if (prefs.getLong("end", 0) == 0 && !prefs.getString("m", "").isEmpty()) {
+                // Pirmas kartas, kai po spausdinimo matom rimti - ir yra pabaiga.
+                prefs.edit().putLong("end", now).apply();
+            }
+
+            long endAt = prefs.getLong("end", 0);
+            boolean done = total == 0 && endAt > 0 && now - endAt < DONE_MS;
+
+            if (done) {
+                // API pabaigos neturi, tad rodom TAI, KA MATEME PATYS.
+                String was = prefs.getString("m", "");
+                state.setText(R.string.done);
+                state.setTextColor(0xFF2FD4B5);
+                model.setText(was.isEmpty() ? getString(R.string.dash) : was);
+                layer.setText(getString(R.string.layers, prefs.getInt("t", 0)));
+                remaining.setText(getString(R.string.finished_ago, since(now - endAt)));
+                ring.set(1f, false);
+            } else {
+                state.setText(j.optString("state", "?").toUpperCase());
+                state.setTextColor(paused ? 0xFFF5C542 : 0xFF2FD4B5);
+                model.setText(name.isEmpty() ? getString(R.string.dash) : name);
+                layer.setText(total > 0 ? j.optString("layerText", "—")
                                         : getString(R.string.dash));
+                remaining.setText(total > 0 ? j.optString("remainingTime", "—")
+                                            : getString(R.string.dash));
+            }
 
             String r = j.optString("resinText", "");
             if (r.isEmpty()) {
@@ -263,8 +333,10 @@ public class MainActivity extends Activity {
             resin.setText(r.isEmpty() ? getString(R.string.dash) : r);
             resin.setTextColor(j.optBoolean("vatLow", false) ? 0xFFF5C542 : 0xFF8A8A8E);
 
-            // Procentu API neduoda - skaiciuojam patys is sluoksniu.
-            ring.set(total > 0 ? (float) cur / (float) total : -1f, paused);
+            if (!done) {
+                // Procentu API neduoda - skaiciuojam patys is sluoksniu.
+                ring.set(total > 0 ? (float) cur / (float) total : -1f, paused);
+            }
         } catch (Exception e) {
             Log.w(TAG, "JSON nesuprastas: " + e);
             state.setText(R.string.offline);

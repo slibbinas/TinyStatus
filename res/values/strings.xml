@@ -8,5 +8,7 @@
     <string name="tap_hint">Tap to refresh</string>
     <!-- %1$d - sekundes nuo paskutinio sekmingo atsakymo -->
     <string name="stale">no answer %1$ds</string>
-    <string name="host">tinymaker.local</string>
+    <string name="done">DONE</string>
+    <string name="layers">%1$d layers</string>
+    <string name="finished_ago">finished %1$s ago</string>
 </resources>
