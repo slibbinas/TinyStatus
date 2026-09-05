@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Irenginio kalba - anglu (projekto taisykle). Komentarai lietuviskai. -->
+    <string name="app_name">TinyStatus</string>
+    <string name="offline">OFFLINE</string>
+    <string name="connecting">…</string>
+    <string name="dash">—</string>
+    <string name="tap_hint">Tap to refresh</string>
+    <string name="host">tinymaker.local</string>
+</resources>

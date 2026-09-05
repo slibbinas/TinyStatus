@@ -1,0 +1,63 @@
+package lt.vsid.tinystatus;
+
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.RectF;
+import android.util.AttributeSet;
+import android.view.View;
+
+/**
+ * Progreso ziedas pakrasciu.
+ *
+ * Spausdintuvas procentu NEGRAZINA (patikrinta: /api/status neturi nei
+ * "progress", nei "percent"), tad progresas skaiciuojamas is sluoksniu -
+ * currentLayer / totalLayers. Kai sluoksniu nezinoma, ziedas nepiesiamas.
+ */
+public class RingView extends View {
+
+    private static final int TRACK = 0xFF1C1C1E;
+    private static final int FILL = 0xFF2FD4B5;
+    private static final int FILL_PAUSED = 0xFFF5C542;
+    private static final float STROKE_DP = 9f;
+    private static final float INSET_DP = 5f;
+
+    private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final RectF box = new RectF();
+    private float progress = -1f;           // <0 - nezinoma, ziedo nepiesiam
+    private boolean paused = false;
+
+    public RingView(Context c, AttributeSet a) {
+        super(c, a);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+    }
+
+    /** progress 0..1, arba neigiamas, kai duomenu nera. */
+    public void set(float progress, boolean paused) {
+        this.progress = progress;
+        this.paused = paused;
+        invalidate();
+    }
+
+    private float dp(float v) {
+        return v * getResources().getDisplayMetrics().density;
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        float stroke = dp(STROKE_DP);
+        float inset = dp(INSET_DP) + stroke / 2f;
+        box.set(inset, inset, getWidth() - inset, getHeight() - inset);
+        paint.setStrokeWidth(stroke);
+
+        paint.setColor(TRACK);
+        canvas.drawArc(box, 0, 360, false, paint);
+
+        if (progress > 0f) {
+            paint.setColor(paused ? FILL_PAUSED : FILL);
+            // -90 laipsniu: pradedam nuo virsaus, kaip laikrodyje
+            canvas.drawArc(box, -90f, 360f * Math.min(progress, 1f), false, paint);
+        }
+    }
+}

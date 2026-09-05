@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Apvalus 438x438 ekranas. Ziedas piesiamas pakrasciu (RingView), o tekstas
+  guli jo viduje. Salines parastes 46dp: ties virsumi ir apacia apskritimas
+  siaureja, o tekstas ten neturi lipti ant ziedo.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <lt.vsid.tinystatus.RingView
+        android:id="@+id/ring"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingLeft="46dp"
+        android:paddingRight="46dp">
+
+        <TextView
+            android:id="@+id/state"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:maxLines="1"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#2FD4B5"
+            android:text="@string/connecting" />
+
+        <TextView
+            android:id="@+id/model"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_marginTop="2dp"
+            android:textSize="12sp"
+            android:textColor="#8A8A8E"
+            android:text="@string/dash" />
+
+        <TextView
+            android:id="@+id/layer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:maxLines="1"
+            android:layout_marginTop="8dp"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textColor="#4D9DF7"
+            android:text="@string/dash" />
+
+        <TextView
+            android:id="@+id/remaining"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:maxLines="1"
+            android:textSize="15sp"
+            android:textColor="#F5C542"
+            android:text="@string/dash" />
+
+        <TextView
+            android:id="@+id/resin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:maxLines="1"
+            android:layout_marginTop="6dp"
+            android:textSize="12sp"
+            android:textColor="#8A8A8E"
+            android:text="@string/dash" />
+
+        <TextView
+            android:id="@+id/hint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:maxLines="1"
+            android:layout_marginTop="6dp"
+            android:textSize="10sp"
+            android:textColor="#4A4A50"
+            android:text="@string/tap_hint" />
+    </LinearLayout>
+</FrameLayout>
