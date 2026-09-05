@@ -21,6 +21,14 @@ PKG="lt.vsid.tinystatus"
 MIN_SDK=33
 TARGET_SDK=36
 OUT="$HERE/build"
+
+# Versija imama is git, ne rasoma ranka.
+#
+# versionCode PRIVALO dideti, kitaip naudotojas negales atsinaujinti:
+# sistema atmeta ta pati numeri be jokio paaiskinimo. Commit'u skaicius
+# tam tinka - jis niekada nemazeja ir nereikalauja nieko prisiminti.
+VERSION_CODE="${VERSION_CODE:-$(git -C "$ROOT" rev-list --count HEAD 2>/dev/null || echo 1)}"
+VERSION_NAME="${VERSION_NAME:-0.1.$VERSION_CODE}"
 KS="$ROOT/keystore/vdigi.keystore"
 
 export JAVA_HOME="$JDK"
@@ -39,7 +47,7 @@ echo "==> 2/5  aapt2 link (+ R.java)"
   --java "$OUT/gen" \
   --min-sdk-version "$MIN_SDK" \
   --target-sdk-version "$TARGET_SDK" \
-  --version-code 1 --version-name 1.0.0 \
+  --version-code "$VERSION_CODE" --version-name "$VERSION_NAME" \
   "$OUT/res.zip"
 
 echo "==> 3/5  javac"
@@ -79,5 +87,6 @@ rm -f "$OUT/base.apk" "$OUT/aligned.apk" "$OUT/res.zip" "$OUT/tinystatus.apk.ids
 
 echo
 echo "PARUOSTA: $OUT/tinystatus.apk  ($(stat -c%s "$OUT/tinystatus.apk") B)"
+echo "Versija:  $VERSION_NAME  (code $VERSION_CODE)"
 echo
 echo "Idiegimas: adb -s <ip> install -r $OUT/tinystatus.apk"
