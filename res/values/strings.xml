@@ -17,18 +17,20 @@
     <string name="ended_ago">ended %1$s ago</string>
     <string name="no_printer">No printer</string>
     <string name="no_printer_hint">Hold to add one</string>
-    <string name="watching">watching · %1$s</string>
+    <!-- %1$s - sekundes/minutes nuo paskutinio atsakymo, %2$s - fono intervalas -->
+    <string name="age">%1$s ago</string>
+    <string name="age_bg">%1$s ago · bg %2$s</string>
 
     <!-- Nustatymu langas -->
     <string name="t_settings">SETTINGS</string>
     <string name="t_background">BACKGROUND</string>
     <string name="bg_off">Off</string>
-    <string name="bg_const">Constantly</string>
+    <string name="bg_const">Every 30 s</string>
     <string name="bg_2">Every 2 min</string>
     <string name="bg_5">Every 5 min</string>
     <string name="bg_10">Every 10 min</string>
     <!-- Trumpai (V): ilgas paaiskinimas gyvena INSTALL.md, ne ekrane. -->
-    <string name="bg_hint">Only while printing</string>
+    <string name="bg_hint">Only while printing. Open app = 5 s</string>
     <string name="t_alerts">ALERTS</string>
     <string name="a_end">Print end</string>
     <string name="a_warn">Resin low</string>

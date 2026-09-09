@@ -86,6 +86,19 @@ public class MainActivity extends Activity {
         }
     };
 
+    /**
+     * Amziaus tiksejimas kas sekunde (kaip Vallox). Skaicius apacioje sako,
+     * pries kiek laiko spausdintuvas atsake - is jo matai, ar programele dar
+     * gyva, ir ar tas 62 % nera valandos senumo.
+     */
+    private final Runnable tiksi = new Runnable() {
+        @Override
+        public void run() {
+            amzius();
+            ui.postDelayed(this, 1000);
+        }
+    };
+
     @Override
     protected void onCreate(Bundle saved) {
         super.onCreate(saved);
@@ -164,6 +177,8 @@ public class MainActivity extends Activity {
         show();
         ui.removeCallbacks(loop);
         ui.post(loop);
+        ui.removeCallbacks(tiksi);
+        ui.post(tiksi);
     }
 
     @Override
@@ -172,6 +187,7 @@ public class MainActivity extends Activity {
         visible = false;
         paskutinisPasitraukimas = System.currentTimeMillis();
         ui.removeCallbacks(loop);
+        ui.removeCallbacks(tiksi);
         releaseWifi();
         // Fono sargas startuoja CIA: uzdarant programele, kai spausdintuvas
         // ka tik matytas spausdinantis. Spausdintuvas pats nieko neskelbia,
@@ -259,6 +275,28 @@ public class MainActivity extends Activity {
         }).start();
     }
 
+    /**
+     * Prierasas apacioje: pries kiek laiko spausdintuvas atsake, o fono sargui
+     * veikiant - ir jo intervalas. Ekranas klausia kas 5 s visada; BACKGROUND
+     * nustatymas liecia tik uzdaryta programele.
+     */
+    private void amzius() {
+        int kiek = TsSaltinis.skaicius(this);
+        long ts = (kiek == 0) ? 0 : TsSaltinis.atmintinesLaikas(this, rodomas);
+        if (ts == 0) {
+            hint.setText("");
+            return;
+        }
+        long s = (System.currentTimeMillis() - ts) / 1000;
+        String kada = (s < 60) ? s + "s" : (s < 3600 ? (s / 60) + "m" : (s / 3600) + "h");
+        if (TsSargas.veikia()) {
+            int min = TsSargas.intervalas(this);
+            hint.setText(getString(R.string.age_bg, kada, min == 1 ? "30s" : min + "min"));
+        } else {
+            hint.setText(getString(R.string.age, kada));
+        }
+    }
+
     /** "1h 5m" arba "5m" - kiek praejo nuo pabaigos. */
     private static String since(long ms) {
         long m = ms / 60000;
@@ -299,19 +337,11 @@ public class MainActivity extends Activity {
             layer.setText(R.string.dash);
             remaining.setText(R.string.dash);
             resin.setText(R.string.dash);
-            hint.setText("");
+            amzius();
             ring.set(-1f, false);
             return;
         }
-        // Senos reiksmes lieka ekrane; apie ju amziu pasako tik prierasas.
-        if (age > STALE_MS) {
-            hint.setText(getString(R.string.stale, age / 1000));
-        } else if (TsSargas.veikia()) {
-            int min = TsSargas.intervalas(this);
-            hint.setText(getString(R.string.watching, min == 1 ? "30 s" : min + " min"));
-        } else {
-            hint.setText("");
-        }
+        amzius();
 
         if (TsPranesimas.rodomDone(this, n, b)) {
             // API pabaigos neturi, tad rodom TAI, KA MATEME PATYS.
