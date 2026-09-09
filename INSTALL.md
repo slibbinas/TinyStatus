@@ -54,8 +54,8 @@ print-finished and resin alerts will have nowhere to go.
 | Where | What |
 |---|---|
 | Big number | **Time left.** After a print: `DONE`, `CANCELED` or `STOPPED`. Idle: `IDLE`. No answer for 90 s: `OFFLINE` |
-| Above it | Layer `232 / 378` |
-| Below | Printer state, model name, resin left in the vat |
+| Above it | Printer (only with several) and the model name |
+| Below | State, layer `232 / 378`, resin left in the vat |
 | Bottom | Seconds since the printer last answered, and the background interval when the watcher is running |
 | Ring | Progress, marked every 10 % |
 
@@ -65,13 +65,18 @@ Progress is computed from the layers: the API reports no percentage.
 
 | Gesture | What happens |
 |---|---|
-| **Swipe up** | Refresh now — the arrow at the bottom spins while it asks |
-| **Swipe down** | Leave the app |
-| **Tap** | Refresh (same as swipe up) |
+| **Swipe down** | Refresh now — the arrow at the bottom spins while it asks |
+| **Swipe up** | Leave the app |
+| **Tap** | Refresh (same as swipe down) |
 | **Long press** | Settings |
 | **Swipe sideways** | Next printer, when you have more than one |
 
 Inside settings, a sideways swipe or the Back button goes back.
+
+Pull-to-refresh is the way it is because that gesture means "refresh"
+everywhere else, and swipe-up-to-close matches the sibling ValloxWatch app.
+Start the swipe from the middle of the screen: from the very top edge the
+system pulls its own quick-settings shade instead.
 
 ### Settings
 
@@ -110,7 +115,7 @@ One honest limitation: if a print is canceled between two polls and the app
 never sees the cancel itself, it reports `Print stopped … not finished` rather
 than `canceled`. It says what it knows, not what it guesses.
 
-**PRINTER** — `Auto search` on (the default) finds a single printer by name
+**PRINTER** — `By name` on (the default) finds a single printer by name
 (`tinymaker.lan`). Turn it off to enter **up to four printers by IP**: tap
 `Add printer`, type the address, `Save`. Tap a printer in the list to edit or
 `Remove` it.
@@ -161,16 +166,17 @@ notifications.
    Bluetooth, and then the printer is unreachable. The app asks for the Wi-Fi
    network explicitly, but Wi-Fi still has to be on
 2. **Does the printer answer?** Check in a browser: `http://tinymaker.lan`
-3. **The name.** With `Auto search` the app tries `tinymaker.lan`, `tinymaker`
+3. **The name.** With `By name` the app tries `tinymaker.lan`, `tinymaker`
    and `tinymaker.local` in that order. `.local` is there only for completeness:
    Android treats that zone as mDNS and will not resolve it through normal DNS.
-   If your router answers to a different name, turn `Auto search` off and enter
+   If your router answers to a different name, turn `By name` off and enter
    the IP
 
 A short silence is not a failure: the printer gets busy with uploads and SD
-work, so the app keeps showing the last values for 90 seconds, saying NOT RESPONDING after 12 s — the seconds
-counter at the bottom tells you how old they are — and only then says
-`OFFLINE`.
+work, so the app keeps the last values on screen. After 12 seconds without an
+answer it says `NOT RESPONDING`, the counter at the bottom turns amber and the
+arrow spins to show it is still trying. Only after a minute and a half does it
+give up and say `OFFLINE`.
 
 ## Building from source
 
