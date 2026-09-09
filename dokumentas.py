@@ -7,6 +7,7 @@ tikruju yra ekrane, o ne tai, kaip norejosi.
 
 Kadru saltiniai (vardai turi sutapti su tuo, kas nufotografuota):
 
+    ciferblatas     ciferblatas su trimis komplikacijomis (derva, laikas, ziedas)
     g1_main         pagrindinis ekranas, spausdinama
     g9_byname_on    nustatymai: PRINTER, "By name" IJUNGTAS (randa pagal varda)
     g3_printer      nustatymai: PRINTER, "By name" ISJUNGTAS (du IP)
@@ -65,6 +66,9 @@ def gif(kelias, dydis=300, spalvos=96):
     # Istorija ta pati, kaip ranka: pirma pamatai, kas vyksta, tada nueini i
     # nustatymus ir grizti.
     eiga = [
+        # Pradzia - ciferblatas: nuo jo viskas ir prasideda, nes ten skaicius
+        # matai nepakeles piršto. Programele - kitas zingsnis, ne pirmas.
+        ("ciferblatas", False, 2400),
         ("g1_main", False, 2100),        # kas vyksta dabar
         ("g9_byname_on", True, 1800),    # nustatymai: randa pagal varda
         ("g3_printer", False, 1800),     # ... arba du IP ranka
