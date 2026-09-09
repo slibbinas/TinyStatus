@@ -1,8 +1,11 @@
 package lt.vsid.tinystatus;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -10,83 +13,68 @@ import android.net.NetworkRequest;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.TextView;
-
-import org.json.JSONObject;
-
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 /**
  * TinyMakerWiFi spausdintuvo busena ant riesto.
  *
- * Duomenys: GET /api/status - visas atsakymas ~1.2 KB, be jokios
- * autentikacijos (patikrinta 2026-09-05 tiesiai is laikrodzio).
+ * Vienas ekranas: ziedas ir tekstas. Bakstelejimas - atnaujinti, ilgas
+ * paspaudimas - nustatymai, braukimas aukstyn - iseiti, braukimas i sona -
+ * kitas spausdintuvas (kai ju keli). Duomenis skaito TsSaltinis, pranesimus
+ * veda TsPranesimas, ciferblata maitina TsKompl, o fone, kol spausdina,
+ * budi TsSargas. Cia lieka tik ekranas ir gestai.
  *
- * VARDAS. ".local" is programeles NEVEIKIA: Android ta zona laiko mDNS ir per
- * iprasta DNS jos neklausia, tad gaunam UnknownHostException, nors apvalkalo
- * ping ta pati varda randa. Uztat marsrutizatorius atsako i "tinymaker.lan" ir
- * i tiesiog "tinymaker". Todel laikom KANDIDATU sarasa ir isimenam ta, kuris
- * suveike - taip isvengiam ir kietai irasyto IP, kuris pasikeistu per DHCP.
- *
- * Atnaujinimas: automatiskai kas REFRESH_MS, kol i ekrana ziurima, ir is karto
- * bakstelejus. Uzdarius - nieko, jokiu fono darbu: spausdinimas trunka
- * valandas, tad pakelti ranka ir pasiziureti visai uztenka.
- *
- * SVARBU - uzklausa privalo eiti per WI-FI tinkla, ne per numatytaji.
- * Laikrodzio numatytasis tinklas yra telefonas per Bluetooth, ir jis apie
- * "tinymaker.local" nieko nezino:
- *     java.net.UnknownHostException: Unable to resolve host "tinymaker.local"
- * Apvalkalo ping pavykdavo, nes jis naudoja Wi-Fi resolveri tiesiogiai.
- * Todel prasom konkretaus Wi-Fi tinklo ir jungiames per ji - tada ir vardas
- * issisprendzia, ir marsrutas teisingas.
- *
- * Viskas surenkama be Gradle ir be bibliotekiu: HttpURLConnection ir org.json
- * yra pacioje Android sistemoje.
+ * SVARBU - uzklausa eina per WI-FI tinkla, kol i ekrana ziurima: laikrodzio
+ * numatytasis tinklas yra telefonas per Bluetooth, ir spausdintuvas per ji
+ * pasiekiamas tik tada, kai telefonas pats namie (zr. TsSaltinis.zonduok).
+ * Atidarytame ekrane 2,5 s laukimo neverta - prasom Wi-Fi is karto.
  */
 public class MainActivity extends Activity {
 
     private static final String TAG = "TINYSTATUS";
     private static final int REFRESH_MS = 5000;
-    private static final int CONNECT_MS = 2500;
-    private static final int READ_MS = 3500;
-    /** Kiek laiko be sekmingo atsakymo dar rodom senas reiksmes.
-     *
-     *  Taip daro ir pats pulto dashboard'as: jis neskelbia "offline", o tik
-     *  pazymi, kad duomenys pasene (`stale = now - lastPollOkAt > 4000`).
-     *  Spausdintuvas neatsako reguliariai - ji uzima ikelimas, SD darbai ar
-     *  peržiūros generavimas - ir tai NORMALU, ne gedimas. */
+    /** Kiek laiko be sekmingo atsakymo dar rodom senas reiksmes. Pulto
+     *  dashboard'as daro ta pati: spausdintuvas neatsako reguliariai - ji uzima
+     *  ikelimas, SD darbai, perziuros generavimas - ir tai NORMALU. */
     private static final long STALE_MS = 12000;
     private static final long DEAD_MS = 45000;
-    /** Kiek laiko po spausdinimo dar rodom, kas buvo atspausdinta.
-     *
-     *  Printeris apie pabaiga NEPRANESA: /api/status tiesiog grizta i Idle, o
-     *  "model" istusteja. Todel isimenam patys ir laikom SharedPreferences,
-     *  kad prisiminimas islaikytu ir programeles uzdaryma.
-     *
-     *  Riba: jei spausdinimas baigesi, kol programele buvo uzdaryta ir mes to
-     *  nematem, pasakyti negalim - tokiu duomenu paprasciausiai nera. */
-    private static final long DONE_MS = 12L * 3600 * 1000;
+    /** Po tiek fone grizus rodomas spausdinantis / pasirinktas spausdintuvas. */
+    private static final long GRIZTAM_MS = 10000L;
 
-    /** Bandom is eiles; pirmas atsiliepes lieka naudojamas. */
-    private static final String[] HOSTS = {"tinymaker.lan", "tinymaker", "tinymaker.local"};
+    private static final int[] IP_LAUKAI = {R.id.k_ip1, R.id.k_ip2, R.id.k_ip3, R.id.k_ip4};
+    private static final int[] BG_MYGTUKAI = {R.id.bg_off, R.id.bg_const, R.id.bg_2, R.id.bg_5, R.id.bg_10};
 
     private final Handler ui = new Handler(Looper.getMainLooper());
 
-    private TextView state, model, layer, remaining, resin, hint;
+    private TextView state, model, layer, remaining, resin, hint, printer;
     private RingView ring;
+    private View nust, ipl;
+    private LinearLayout alerts, autoEilute, printers;
     private volatile boolean visible = false;
     private volatile Network wifi = null;
-    private volatile String goodHost = null; // kuris vardas suveike
-    private SharedPreferences prefs;
-    private long lastOkAt = 0;              // kada paskutini karta gavom atsakyma
-    private String lastBody = null;         // ir ka jis sake
     private ConnectivityManager cm;
     private ConnectivityManager.NetworkCallback netCb;
+    private GestureDetector gestai;
+    private GestureDetector langoGestai;
+    private long paskutinisPasitraukimas;
+    /** Kuris spausdintuvas ekrane. */
+    private int rodomas;
+    /** Kuri spausdintuva redaguoja IP langas; -1 - naujas. */
+    private int redaguojamas = -1;
 
     private final Runnable loop = new Runnable() {
         @Override
@@ -106,32 +94,95 @@ public class MainActivity extends Activity {
         remaining = findViewById(R.id.remaining);
         resin = findViewById(R.id.resin);
         hint = findViewById(R.id.hint);
+        printer = findViewById(R.id.printer);
         ring = findViewById(R.id.ring);
-
+        nust = findViewById(R.id.nust);
+        ipl = findViewById(R.id.ipl);
+        alerts = findViewById(R.id.alerts);
+        autoEilute = findViewById(R.id.auto_eilute);
+        printers = findViewById(R.id.printers);
         cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        prefs = getSharedPreferences("tinystatus", MODE_PRIVATE);
+        rodomas = TsSaltinis.rodomas(this);
 
-        findViewById(R.id.root).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Nieko neleidziam iskristi is klausytojo: nepagauta klaida cia
-                // uzdaro visa programele (ADB Toggle pamoka).
-                try {
-                    fetch();
-                } catch (RuntimeException e) {
-                    Log.w(TAG, "bakstelejimas: " + e);
-                }
-            }
-        });
+        gestaiSukurk();
+        nustatymaiSukurk();
+
+        // Pranesimams nuo Android 13 reikia leidimo. Atsisakymas reiskia tik
+        // tiek, kad pranesimu nebus - programele veikia toliau.
+        if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
+        }
+        derinimas(getIntent());
     }
+
+    @Override
+    protected void onNewIntent(Intent i) {
+        super.onNewIntent(i);
+        derinimas(i);
+    }
+
+    /**
+     * Derinimo rankenos per adb (tik su V leidimu):
+     *   am start -n lt.vsid.tinystatus/.MainActivity --ez probe true  - zondas
+     *   ... --es demo end|cancel|resin|stop  - pavyzdinis pranesimas GIF'ui
+     */
+    private void derinimas(Intent i) {
+        if (i == null) {
+            return;
+        }
+        if (i.getBooleanExtra("probe", false)) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    TsSaltinis.zonduok(MainActivity.this);
+                }
+            }).start();
+        }
+        String demo = i.getStringExtra("demo");
+        if (demo != null) {
+            TsPranesimas.demo(this, demo);
+        }
+    }
+
+    // ------------------------------------------------------------ gyvavimas
 
     @Override
     protected void onResume() {
         super.onResume();
         visible = true;
+        boolean ilgai = paskutinisPasitraukimas > 0
+                && System.currentTimeMillis() - paskutinisPasitraukimas > GRIZTAM_MS;
+        if (ilgai && nust.getVisibility() != View.VISIBLE && ipl.getVisibility() != View.VISIBLE) {
+            // Grizus po ilgesnio laiko - ta, kuris spausdina (arba pasirinktas),
+            // ne tas, kuri paliko pirstas.
+            rodomas = TsSaltinis.rodomas(this);
+        }
         requestWifi();
+        show();
         ui.removeCallbacks(loop);
         ui.post(loop);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        visible = false;
+        paskutinisPasitraukimas = System.currentTimeMillis();
+        ui.removeCallbacks(loop);
+        releaseWifi();
+        // Fono sargas startuoja CIA: uzdarant programele, kai spausdintuvas
+        // ka tik matytas spausdinantis. Spausdintuvas pats nieko neskelbia,
+        // tad "atidaryk programele pradejes spausdinti" ir yra sutartis.
+        if (TsSargas.intervalas(this) != 0 && !TsSargas.veikia()) {
+            for (int n = 0; n < TsSaltinis.skaicius(this); n++) {
+                TsBusena b = TsSaltinis.atmintineje(this, n);
+                if (b != null && b.busy && System.currentTimeMillis() - b.at < 2 * 60_000L) {
+                    TsSargas.paleisk(this, "programele uzdaryta spausdinant");
+                    break;
+                }
+            }
+        }
     }
 
     /** Prasom Wi-Fi tinklo ir laikom ji, kol i ekrana ziurima. */
@@ -174,38 +225,31 @@ public class MainActivity extends Activity {
         wifi = null;
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        visible = false;
-        ui.removeCallbacks(loop);
-        releaseWifi();
-    }
+    // ------------------------------------------------------------ skaitymas
 
-    /** Uzklausa atskirame gijoje - tinklas pagrindineje gijoje neleidziamas. */
+    /** Uzklausa atskiroje gijoje - tinklas pagrindineje gijoje neleidziamas. */
     private void fetch() {
+        final int n = rodomas;
+        if (TsSaltinis.skaicius(this) == 0) {
+            return;
+        }
         new Thread(new Runnable() {
             @Override
             public void run() {
-                String body = null;
-                for (String host : hostsToTry()) {
-                    try {
-                        body = get("http://" + host + "/api/status");
-                        if (!host.equals(goodHost)) {
-                            Log.i(TAG, "vardas veikia: " + host);
-                            goodHost = host;
-                        }
-                        break;
-                    } catch (Exception e) {
-                        Log.w(TAG, host + " nepavyko: " + e);
-                    }
+                // Per Wi-Fi tinkla, jei jis gautas; kitaip - kaip iseina.
+                TsBusena b = TsSaltinis.skaityk(MainActivity.this, n, wifi);
+                if (b != null) {
+                    TsSaltinis.konfig(MainActivity.this, n, wifi);
+                    // Ekranas busena VEDA, bet nauju pranesimu neskelbia -
+                    // zmogus ir taip ziuri (tylus=true).
+                    TsPranesimas.tikrink(MainActivity.this, n, b, true, REFRESH_MS);
+                    TsKompl.atnaujink(MainActivity.this);
                 }
-                final String result = body;
                 ui.post(new Runnable() {
                     @Override
                     public void run() {
                         if (visible) {
-                            show(result);
+                            show();
                         }
                     }
                 });
@@ -213,65 +257,39 @@ public class MainActivity extends Activity {
         }).start();
     }
 
-    /** Zinomas veikiantis vardas pirmas, po jo - visi likusieji. */
     /** "1h 5m" arba "5m" - kiek praejo nuo pabaigos. */
     private static String since(long ms) {
         long m = ms / 60000;
         return m >= 60 ? (m / 60) + "h " + (m % 60) + "m" : m + "m";
     }
 
-    private String[] hostsToTry() {
-        String good = goodHost;
-        if (good == null) {
-            return HOSTS;
+    /** Ekranas is atmintines: tinklas cia nedalyvauja. */
+    private void show() {
+        int kiek = TsSaltinis.skaicius(this);
+        if (kiek == 0) {
+            state.setText(R.string.no_printer);
+            state.setTextColor(0xFFF5C542);
+            model.setText(R.string.dash);
+            layer.setText(R.string.dash);
+            remaining.setText(R.string.dash);
+            resin.setText(R.string.dash);
+            hint.setText(R.string.no_printer_hint);
+            printer.setVisibility(View.GONE);
+            ring.set(-1f, false);
+            return;
         }
-        String[] order = new String[HOSTS.length];
-        order[0] = good;
-        int i = 1;
-        for (String h : HOSTS) {
-            if (!h.equals(good)) {
-                order[i++] = h;
-            }
+        int n = rodomas;
+        if (kiek > 1) {
+            printer.setText(TsSaltinis.vardas(this, n));
+            printer.setVisibility(View.VISIBLE);
+        } else {
+            printer.setVisibility(View.GONE);
         }
-        return order;
-    }
-
-    private String get(String url) throws Exception {
-        Network net = wifi;
-        URL u = new URL(url);
-        // Per Wi-Fi tinkla, jei jis gautas; kitaip - kaip iseina.
-        HttpURLConnection c = (HttpURLConnection)
-                (net != null ? net.openConnection(u) : u.openConnection());
-        try {
-            c.setConnectTimeout(CONNECT_MS);
-            c.setReadTimeout(READ_MS);
-            c.setRequestProperty("Connection", "close");
-            int code = c.getResponseCode();
-            if (code != 200) {
-                throw new IllegalStateException("HTTP " + code);
-            }
-            InputStream in = c.getInputStream();
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            byte[] buf = new byte[2048];
-            int n;
-            while ((n = in.read(buf)) > 0) {
-                out.write(buf, 0, n);
-            }
-            return out.toString("UTF-8");
-        } finally {
-            c.disconnect();
-        }
-    }
-
-    private void show(String body) {
         long now = System.currentTimeMillis();
-        if (body != null) {
-            lastBody = body;
-            lastOkAt = now;
-        }
-        long age = lastOkAt == 0 ? Long.MAX_VALUE : now - lastOkAt;
+        TsBusena b = TsSaltinis.atmintineje(this, n);
+        long age = (b == null) ? Long.MAX_VALUE : now - b.at;
 
-        if (lastBody == null || age > DEAD_MS) {
+        if (b == null || age > DEAD_MS) {
             // Tikrai negyvas: nei karto negavom, arba tyli jau labai ilgai.
             state.setText(R.string.offline);
             state.setTextColor(0xFFFF453A);
@@ -283,64 +301,491 @@ public class MainActivity extends Activity {
             ring.set(-1f, false);
             return;
         }
-        body = lastBody;
         // Senos reiksmes lieka ekrane; apie ju amziu pasako tik prierasas.
-        hint.setText(age > STALE_MS
-                ? getString(R.string.stale, age / 1000)
-                : getString(R.string.tap_hint));
-        try {
-            JSONObject j = new JSONObject(body);
-            boolean paused = j.optBoolean("paused", false);
-            int cur = j.optInt("currentLayer", 0);
-            int total = j.optInt("totalLayers", 0);
-
-            String name = j.optString("model", "");
-
-            if (total > 0) {
-                // Spausdina: isimenam, kas ir kiek - printeris to nesako, kai baigia.
-                prefs.edit().putString("m", name).putInt("t", total).putLong("end", 0).apply();
-            } else if (prefs.getLong("end", 0) == 0 && !prefs.getString("m", "").isEmpty()) {
-                // Pirmas kartas, kai po spausdinimo matom rimti - ir yra pabaiga.
-                prefs.edit().putLong("end", now).apply();
-            }
-
-            long endAt = prefs.getLong("end", 0);
-            boolean done = total == 0 && endAt > 0 && now - endAt < DONE_MS;
-
-            if (done) {
-                // API pabaigos neturi, tad rodom TAI, KA MATEME PATYS.
-                String was = prefs.getString("m", "");
-                state.setText(R.string.done);
-                state.setTextColor(0xFF2FD4B5);
-                model.setText(was.isEmpty() ? getString(R.string.dash) : was);
-                layer.setText(getString(R.string.layers, prefs.getInt("t", 0)));
-                remaining.setText(getString(R.string.finished_ago, since(now - endAt)));
-                ring.set(1f, false);
-            } else {
-                state.setText(j.optString("state", "?").toUpperCase());
-                state.setTextColor(paused ? 0xFFF5C542 : 0xFF2FD4B5);
-                model.setText(name.isEmpty() ? getString(R.string.dash) : name);
-                layer.setText(total > 0 ? j.optString("layerText", "—")
-                                        : getString(R.string.dash));
-                remaining.setText(total > 0 ? j.optString("remainingTime", "—")
-                                            : getString(R.string.dash));
-            }
-
-            String r = j.optString("resinText", "");
-            if (r.isEmpty()) {
-                r = j.optString("vatText", "");
-            }
-            resin.setText(r.isEmpty() ? getString(R.string.dash) : r);
-            resin.setTextColor(j.optBoolean("vatLow", false) ? 0xFFF5C542 : 0xFF8A8A8E);
-
-            if (!done) {
-                // Procentu API neduoda - skaiciuojam patys is sluoksniu.
-                ring.set(total > 0 ? (float) cur / (float) total : -1f, paused);
-            }
-        } catch (Exception e) {
-            Log.w(TAG, "JSON nesuprastas: " + e);
-            state.setText(R.string.offline);
-            state.setTextColor(0xFFFF453A);
+        if (age > STALE_MS) {
+            hint.setText(getString(R.string.stale, age / 1000));
+        } else if (TsSargas.veikia()) {
+            int min = TsSargas.intervalas(this);
+            hint.setText(getString(R.string.watching, min == 1 ? "30 s" : min + " min"));
+        } else {
+            hint.setText(R.string.tap_hint);
         }
+
+        if (TsPranesimas.rodomDone(this, n, b)) {
+            // API pabaigos neturi, tad rodom TAI, KA MATEME PATYS.
+            int rusis = TsPranesimas.pabaigosRusis(this, n);
+            String was = TsPranesimas.pabaigosModelis(this, n);
+            long end = TsPranesimas.pabaigosLaikas(this, n);
+            boolean gerai = rusis == TsPranesimas.PABAIGA_BAIGTA;
+            state.setText(gerai ? R.string.done
+                    : (rusis == TsPranesimas.PABAIGA_ATSAUKTA ? R.string.canceled : R.string.stopped));
+            state.setTextColor(gerai ? 0xFF2FD4B5 : 0xFFF5C542);
+            model.setText(was.isEmpty() ? getString(R.string.dash) : was);
+            layer.setText(getString(R.string.layers, TsPranesimas.pabaigosSluoksniai(this, n)));
+            remaining.setText(getString(gerai ? R.string.finished_ago : R.string.ended_ago,
+                    since(now - end)));
+            ring.set(gerai ? 1f : -1f, false);
+        } else if (b.busy) {
+            state.setText(b.state.isEmpty() ? "?" : b.state.toUpperCase());
+            state.setTextColor(b.paused ? 0xFFF5C542 : 0xFF2FD4B5);
+            model.setText(b.model.isEmpty() ? getString(R.string.dash) : b.model);
+            layer.setText(b.total > 0 ? b.layerText : getString(R.string.dash));
+            remaining.setText(b.total > 0 ? b.remainingTime : getString(R.string.dash));
+            // Procentu API neduoda - skaiciuojam patys is sluoksniu.
+            ring.set(b.progress(), b.paused);
+        } else {
+            state.setText(b.state.isEmpty() ? getString(R.string.idle) : b.state.toUpperCase());
+            state.setTextColor(0xFF8A8A8E);
+            model.setText(R.string.dash);
+            layer.setText(R.string.dash);
+            remaining.setText(R.string.dash);
+            ring.set(-1f, false);
+        }
+
+        String r = b.resinLine();
+        resin.setText(r.isEmpty() ? getString(R.string.dash) : r);
+        resin.setTextColor(b.vatLow ? 0xFFF5C542 : 0xFF8A8A8E);
+    }
+
+    // ------------------------------------------------------------ gestai
+
+    /**
+     * Gestus gaudom dispatchTouchEvent, o ne klausytoju ant saknies: su
+     * klausytoju braukimas nesuveikdavo isvis (Vallox pamoka).
+     */
+    private void gestaiSukurk() {
+        gestai = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onFling(MotionEvent a, MotionEvent b, float vx, float vy) {
+                if (a == null || b == null) {
+                    return false;
+                }
+                if (Math.abs(vy) > Math.abs(vx)) {
+                    // Braukimas AUKSTYN uzdaro programele (V). Pagrindinis
+                    // ekranas telpa, vertikalus judesys jame laisvas.
+                    if (b.getY() - a.getY() < -60) {
+                        Log.i(TAG, "braukimas aukstyn - uzdarom");
+                        finish();
+                        return true;
+                    }
+                    return false;
+                }
+                float dx = b.getX() - a.getX();
+                int kiek = TsSaltinis.skaicius(MainActivity.this);
+                if (kiek > 1 && Math.abs(dx) > 50) {
+                    rodomas = (rodomas + (dx < 0 ? 1 : kiek - 1)) % kiek;
+                    // Tas, i kuri nubraukei, tampa ir numatytuoju - jokio
+                    // atskiro "rodyti si" nustatymo nereikia.
+                    TsSaltinis.prefs(MainActivity.this).edit().putInt("pr.sel", rodomas).apply();
+                    Log.i(TAG, "spausdintuvas " + rodomas);
+                    show();
+                    fetch();
+                }
+                return true;
+            }
+
+            @Override
+            public boolean onSingleTapUp(MotionEvent e) {
+                if (TsSaltinis.skaicius(MainActivity.this) == 0) {
+                    rodykNustatymus(true);
+                } else {
+                    fetch();
+                }
+                return true;
+            }
+
+            @Override
+            public void onLongPress(MotionEvent e) {
+                Log.i(TAG, "ilgas paspaudimas - nustatymai");
+                rodykNustatymus(true);
+            }
+
+            @Override
+            public boolean onDown(MotionEvent e) {
+                return true;                   // be sito onFling nesuveikia
+            }
+        });
+        // Atidarytame lange braukimas i sona grazina atgal - Back mygtuko ant
+        // apvalaus ekrano nera. Vertikalus judesys lieka ScrollView slinkimui.
+        langoGestai = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onFling(MotionEvent a, MotionEvent b, float vx, float vy) {
+                if (a == null || b == null || Math.abs(vx) < Math.abs(vy)
+                        || Math.abs(b.getX() - a.getX()) < 50) {
+                    return false;
+                }
+                Log.i(TAG, "langas: braukimas atgal");
+                onBackPressed();
+                return true;
+            }
+
+            @Override
+            public boolean onDown(MotionEvent e) {
+                return true;
+            }
+        });
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent e) {
+        if (nust.getVisibility() == View.VISIBLE || ipl.getVisibility() == View.VISIBLE) {
+            // Mygtukai lange dirba patys (super), mes is salies ziurim tik,
+            // ar tai nebuvo braukimas atgal.
+            langoGestai.onTouchEvent(e);
+            return super.dispatchTouchEvent(e);
+        }
+        gestai.onTouchEvent(e);
+        return super.dispatchTouchEvent(e);
+    }
+
+    /** Back uzdaro langa, o ne programele. */
+    @Override
+    public void onBackPressed() {
+        if (ipl.getVisibility() == View.VISIBLE) {
+            ipl.setVisibility(View.GONE);
+            rodykNustatymus(true);
+            return;
+        }
+        if (nust.getVisibility() == View.VISIBLE) {
+            rodykNustatymus(false);
+            return;
+        }
+        super.onBackPressed();
+    }
+
+    // ------------------------------------------------------------ nustatymai
+
+    private void nustatymaiSukurk() {
+        for (int i = 0; i < BG_MYGTUKAI.length; i++) {
+            final int pasirinkimas = i;
+            findViewById(BG_MYGTUKAI[i]).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    TsSaltinis.prefs(MainActivity.this).edit().putInt("bg.int", pasirinkimas).apply();
+                    Log.i(TAG, "fonas: " + pasirinkimas);
+                    if (pasirinkimas == 0) {
+                        TsSargas.sustabdyk(MainActivity.this, "isjungta nustatymuose");
+                    } else if (TsSargas.veikia()) {
+                        // Naujas intervalas isigalios nuo kito tiko - sargas
+                        // ji skaito kaskart is nustatymu.
+                        Log.i(TAG, "fonas: sargas veikia, intervalas nuo kito tiko");
+                    }
+                    zymekFona();
+                }
+            });
+        }
+        findViewById(R.id.n_close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                rodykNustatymus(false);
+            }
+        });
+
+        // IP langas: suvedus tris skaitmenis - i kita langeli; klaviaturos
+        // varnele issaugo, nes ji uzdengia Save.
+        for (int i = 0; i < IP_LAUKAI.length; i++) {
+            final int kitas = (i + 1 < IP_LAUKAI.length) ? IP_LAUKAI[i + 1] : 0;
+            ((EditText) findViewById(IP_LAUKAI[i])).addTextChangedListener(new TextWatcher() {
+                @Override
+                public void afterTextChanged(Editable e) {
+                    if (e.length() == 3 && kitas != 0) {
+                        findViewById(kitas).requestFocus();
+                    }
+                }
+
+                @Override
+                public void beforeTextChanged(CharSequence c, int a, int b, int d) {
+                }
+
+                @Override
+                public void onTextChanged(CharSequence c, int a, int b, int d) {
+                }
+            });
+        }
+        ((EditText) findViewById(R.id.k_ip4)).setOnEditorActionListener(
+                new TextView.OnEditorActionListener() {
+                    @Override
+                    public boolean onEditorAction(TextView v, int id, KeyEvent e) {
+                        irasykIp();
+                        return true;
+                    }
+                });
+        findViewById(R.id.k_irasyk).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                irasykIp();
+            }
+        });
+        findViewById(R.id.k_isimk).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (redaguojamas >= 0) {
+                    TsSaltinis.isimkSpausdintuva(MainActivity.this, redaguojamas);
+                    Log.i(TAG, "spausdintuvas " + redaguojamas + " isimtas");
+                }
+                rodomas = TsSaltinis.rodomas(MainActivity.this);
+                ipl.setVisibility(View.GONE);
+                rodykNustatymus(true);
+            }
+        });
+    }
+
+    private void rodykNustatymus(boolean ar) {
+        if (ar) {
+            zymekFona();
+            piesk();
+            nust.setVisibility(View.VISIBLE);
+            nust.post(new Runnable() {
+                @Override
+                public void run() {
+                    nust.scrollTo(0, 0);       // praeito karto slinktis - ne musu
+                }
+            });
+        } else {
+            nust.setVisibility(View.GONE);
+            rodomas = TsSaltinis.rodomas(this);
+            show();
+            fetch();
+        }
+    }
+
+    private void zymekFona() {
+        int i = TsSaltinis.prefs(this).getInt("bg.int", 0);
+        for (int k = 0; k < BG_MYGTUKAI.length; k++) {
+            findViewById(BG_MYGTUKAI[k]).setSelected(k == i);
+        }
+    }
+
+    /** Jungikliu eilutes ir spausdintuvu sarasas - perpiesiama kaskart atidarius. */
+    private void piesk() {
+        final SharedPreferences p = TsSaltinis.prefs(this);
+        alerts.removeAllViews();
+        String[][] al = {{"al.end", getString(R.string.a_end), "1"},
+                {"al.warn", getString(R.string.a_warn), "1"},
+                {"al.stop", getString(R.string.a_stop), "1"},
+                {"al.pause", getString(R.string.a_pause), "0"}};
+        for (final String[] a : al) {
+            alerts.addView(eilute(a[1], p.getBoolean(a[0], "1".equals(a[2])),
+                    new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton v, boolean ar) {
+                            p.edit().putBoolean(a[0], ar).apply();
+                        }
+                    }));
+        }
+
+        autoEilute.removeAllViews();
+        autoEilute.addView(eilute(getString(R.string.s_auto), TsSaltinis.auto(this),
+                new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton v, boolean ar) {
+                        p.edit().putBoolean("auto", ar).apply();
+                        Log.i(TAG, "autodiscovery: " + ar);
+                        // Kitas rezimas - kita atmintine ir kita pranesimu
+                        // busena; sena butu apie kita spausdintuva.
+                        TsPranesimas.nuvalyk(MainActivity.this);
+                        rodomas = TsSaltinis.rodomas(MainActivity.this);
+                        pieskSarasa();
+                    }
+                }));
+        pieskSarasa();
+    }
+
+    private void pieskSarasa() {
+        printers.removeAllViews();
+        if (TsSaltinis.auto(this)) {
+            String ip = TsSaltinis.prefs(this).getString("pr.0.seen", "");
+            String host = TsSaltinis.prefs(this).getString("pr.0.host", "");
+            if (!host.isEmpty()) {
+                printers.addView(prierasas(host + (ip.isEmpty() ? "" : " · " + ip)));
+            }
+            return;
+        }
+        int kiek = TsSaltinis.skaicius(this);
+        for (int n = 0; n < kiek; n++) {
+            final int nr = n;
+            TextView v = mygtukas(TsSaltinis.ip(this, n), n == TsSaltinis.pasirinktas(this));
+            v.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View x) {
+                    rodykIpLanga(nr);
+                }
+            });
+            printers.addView(v);
+        }
+        if (kiek < TsSaltinis.MAX_PR) {
+            TextView v = mygtukas(getString(R.string.a_add), false);
+            v.setBackgroundResource(R.drawable.veiksmas);
+            v.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View x) {
+                    rodykIpLanga(-1);
+                }
+            });
+            printers.addView(v);
+        }
+    }
+
+    private TextView mygtukas(String tekstas, boolean pazymetas) {
+        float t = getResources().getDisplayMetrics().density;
+        TextView v = new TextView(this);
+        v.setText(tekstas);
+        v.setGravity(Gravity.CENTER);
+        v.setTextSize(15);
+        v.setTextColor(0xFFE8ECF5);
+        v.setPadding(0, Math.round(9 * t), 0, Math.round(9 * t));
+        v.setBackgroundResource(R.drawable.mygtukas);
+        v.setSelected(pazymetas);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.topMargin = Math.round(6 * t);
+        v.setLayoutParams(lp);
+        return v;
+    }
+
+    private TextView prierasas(String tekstas) {
+        float t = getResources().getDisplayMetrics().density;
+        TextView v = new TextView(this);
+        v.setText(tekstas);
+        v.setGravity(Gravity.CENTER);
+        v.setTextSize(11);
+        v.setTextColor(0xFF8A8A8E);
+        v.setPadding(0, Math.round(6 * t), 0, 0);
+        return v;
+    }
+
+    /**
+     * Jungiklio eilute: vardas ir jungiklis ATSKIRAI. Su Switch nuosavu tekstu
+     * vardas nukerpamas net sumazinus srifta (Vallox greblys). Busena dedam
+     * PRIES klausytoja - setChecked ji pazadina.
+     */
+    private View eilute(String vardas, boolean busena, CompoundButton.OnCheckedChangeListener kl) {
+        float t = getResources().getDisplayMetrics().density;
+        LinearLayout e = new LinearLayout(this);
+        e.setOrientation(LinearLayout.HORIZONTAL);
+        e.setGravity(Gravity.CENTER_VERTICAL);
+        e.setPadding(Math.round(12 * t), Math.round(9 * t), Math.round(6 * t), Math.round(9 * t));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.topMargin = Math.round(6 * t);
+        e.setLayoutParams(lp);
+
+        TextView v = new TextView(this);
+        v.setText(vardas);
+        v.setSingleLine(true);
+        v.setTextSize(14);
+        v.setEllipsize(TextUtils.TruncateAt.END);
+        v.setTextColor(0xFFE8ECF5);
+        v.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        e.addView(v);
+
+        final Switch j = new Switch(this);
+        j.setChecked(busena);
+        j.setOnCheckedChangeListener(kl);
+        e.addView(j);
+
+        // Spaudziama visa eilute - taikytis i jungikli ant riesto sunku.
+        e.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View x) {
+                j.toggle();
+            }
+        });
+        return e;
+    }
+
+    // ------------------------------------------------------------ IP langas
+
+    private void rodykIpLanga(int n) {
+        redaguojamas = n;
+        String a = (n >= 0) ? TsSaltinis.ip(this, n) : "";
+        String[] d = a.split("\\.", -1);
+        for (int i = 0; i < IP_LAUKAI.length; i++) {
+            ((EditText) findViewById(IP_LAUKAI[i])).setText(d.length == 4 ? d[i] : "");
+        }
+        ((TextView) findViewById(R.id.k_busena)).setText("");
+        findViewById(R.id.k_isimk).setVisibility(n >= 0 ? View.VISIBLE : View.GONE);
+        nust.setVisibility(View.GONE);
+        ipl.setVisibility(View.VISIBLE);
+        findViewById(R.id.k_ip1).requestFocus();
+    }
+
+    private String ipLaukuose() {
+        StringBuilder b = new StringBuilder();
+        for (int i = 0; i < IP_LAUKAI.length; i++) {
+            if (i > 0) {
+                b.append('.');
+            }
+            b.append(((EditText) findViewById(IP_LAUKAI[i])).getText().toString().trim());
+        }
+        return b.toString();
+    }
+
+    /** Ar tai IPv4 adresas. Keturios dalys, kiekviena 0..255. */
+    private static boolean arIP(String a) {
+        String[] d = a.split("\\.", -1);
+        if (d.length != 4) {
+            return false;
+        }
+        for (String x : d) {
+            if (x.length() == 0 || x.length() > 3) {
+                return false;
+            }
+            for (int i = 0; i < x.length(); i++) {
+                if (!Character.isDigit(x.charAt(i))) {
+                    return false;
+                }
+            }
+            if (Integer.parseInt(x) > 255) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void irasykIp() {
+        final String a = ipLaukuose();
+        final TextView busena = findViewById(R.id.k_busena);
+        InputMethodManager im = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (im != null) {
+            im.hideSoftInputFromWindow(findViewById(R.id.k_ip1).getWindowToken(), 0);
+        }
+        // Ant riesto vedant lengva suklysti - tokio adreso NEIRASOM: tyliai
+        // priimtas jis reikstu programele, kuri nebeveikia, ir nezinia kodel.
+        if (!arIP(a)) {
+            busena.setText(R.string.e_ip);
+            return;
+        }
+        TsSaltinis.irasykSpausdintuva(this, redaguojamas, a, null);
+        final int n = (redaguojamas >= 0) ? redaguojamas : TsSaltinis.skaicius(this) - 1;
+        redaguojamas = n;
+        findViewById(R.id.k_isimk).setVisibility(View.VISIBLE);
+        Log.i(TAG, "spausdintuvas " + n + ": " + a);
+        busena.setText(R.string.e_checking);
+        // Pasitikrinam, ar tuo adresu atsiliepia SPAUSDINTUVAS. Neatsiliepus
+        // vis tiek issaugom - gal jis tiesiog isjungtas.
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final TsBusena b = TsSaltinis.skaityk(MainActivity.this, n, wifi);
+                ui.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        busena.setText(b != null ? R.string.e_ok : R.string.e_none);
+                        if (b != null) {
+                            ui.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (ipl.getVisibility() == View.VISIBLE) {
+                                        ipl.setVisibility(View.GONE);
+                                        rodykNustatymus(true);
+                                    }
+                                }
+                            }, 1400);
+                        }
+                    }
+                });
+            }
+        }).start();
     }
 }

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  PASIRINKIMO mygtukas: aktyvus - sodri Vallox melyna, neaktyvus - pilkas (V).
+
+  Anksciau buvo atvirksciai: neaktyvus melyni, aktyvus sviesesnis melynas. Prie
+  penkiu melynu mygtuku ekrane pasirinkima tekdavo ieskoti pagal atspalvi, o tai
+  ne skirtumas, o mįslė. Pilka sako "sitas ne", melyna - "sitas dabar".
+
+  Paspaudimas sviesesnis uz pazymejima: kitaip pirstas neduotu jokio atsako.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#4A6FD8" />
+            <corners android:radius="18dp" />
+        </shape>
+    </item>
+    <item android:state_selected="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#2B3F9E" />
+            <corners android:radius="18dp" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#33363C" />
+            <corners android:radius="18dp" />
+        </shape>
+    </item>
+</selector>

@@ -8,29 +8,157 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- requestNetwork be sito meta SecurityException. -->
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <!-- Pranesimai apie spausdinimo pabaiga ir derva; nuo Android 13 dar ir
+         prasoma vykdymo metu. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!--
+      Fono sargas (TsSargas): foreground servisas tipo connectedDevice -
+      isorinis irenginys per tinkla. dataSync netinka: Android 15 ji riboja
+      6 h per para, o spausdinimas trunka ilgiau. specialUse - atsarga, jei
+      sistema connectedDevice atmestu.
+    -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- Wake lock tik skaitymo metu (iki 20 s per tika). -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!--
+      Tikslus alarmai 2/5/10 min tikams. USE_EXACT_ALARM suteikiamas diegiant:
+      SCHEDULE_EXACT_ALARM Wear OS neturi kur suteikti (nera "Alarms &
+      reminders" lango). Play tokia programele atmestu - diegiam patys.
+    -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <!-- Sargo atkurimas po perkrovimo spausdinimo viduryje. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!--
       usesCleartextTraffic BUTINA: nuo Android 9 paprastas http:// blokuojamas
       tyliai, be jokio pranesimo, o TinyMakerWiFi HTTPS neturi ir neturės -
       tai ESP32 vietiniame tinkle.
+
+      enableOnBackInvokedCallback=false: nuo targetSdk 35 Android numatytai
+      ijungia "predictive back", ir senasis onBackPressed() NEBEKVIECIAMAS -
+      Back tiesiog uzdarydavo programele. Mums Back turi uzdaryti atidaryta
+      langa, tad grazinam sena elgesi.
     -->
     <application
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
+        android:enableOnBackInvokedCallback="false"
         android:usesCleartextTraffic="true">
 
         <meta-data
             android:name="com.google.android.wearable.standalone"
             android:value="true" />
 
+        <!-- ComplicationProviderService kalba su sistema per sia biblioteka. -->
+        <uses-library
+            android:name="com.google.android.wearable"
+            android:required="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:windowSoftInputMode="adjustResize"
             android:theme="@style/NoSwipe">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!--
+          Komplikaciju teikejai: po viena kiekvienai reiksmei, kad V pats
+          nuspręstu, kuri kur atsiduria ciferblate.
+
+          UPDATE_PERIOD_SECONDS=0: sistema pati NEZADINA. Sviezuma atnesa
+          fono sargas arba atidaryta programele; teikejas atsako is atmintines.
+        -->
+        <service
+            android:name=".TsKompl$Eiga"
+            android:icon="@drawable/ic_ts_print"
+            android:exported="true"
+            android:label="TinyMaker progress"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
+            </intent-filter>
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="SHORT_TEXT" />
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="0" />
+        </service>
+
+        <service
+            android:name=".TsKompl$Laikas"
+            android:icon="@drawable/ic_ts_timer"
+            android:exported="true"
+            android:label="TinyMaker time left"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
+            </intent-filter>
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="SHORT_TEXT" />
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="0" />
+        </service>
+
+        <service
+            android:name=".TsKompl$Derva"
+            android:icon="@drawable/ic_ts_drop"
+            android:exported="true"
+            android:label="TinyMaker resin"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
+            </intent-filter>
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="SHORT_TEXT" />
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="0" />
+        </service>
+
+        <!-- Ziedas: TIK RANGED_VALUE, kad lizdas, mokantis abu tipus, prasytu
+             butent ziedo (supportedTypes eile lemia tipa). -->
+        <service
+            android:name=".TsKompl$Ziedas"
+            android:icon="@drawable/ic_ts_print"
+            android:exported="true"
+            android:label="TinyMaker ring"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
+            </intent-filter>
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="RANGED_VALUE" />
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="0" />
+        </service>
+
+        <service
+            android:name=".TsSargas"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice|specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Polling a 3D printer on the LAN during a print" />
+        </service>
+
+        <receiver
+            android:name=".TsBoot"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

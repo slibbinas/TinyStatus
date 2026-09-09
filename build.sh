@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # TinyStatus - TinyMakerWiFi busena ant riesto. Surenkama be Gradle.
 #
-# Gryna Java, jokiu biblioteku, todel uztenka javac + d8 + aapt2.
+# Gryna Java + viena biblioteka (Wearable Support, komplikacijoms), todel
+# uztenka javac + d8 + aapt2.
 # (Gradle demonui sioje masinoje blokuojama loopback jungtis.)
 #
 # Naudojimas:  bash tools/tinystatus/build.sh
@@ -33,6 +34,26 @@ KS="$ROOT/keystore/vdigi.keystore"
 
 export JAVA_HOME="$JDK"
 
+# Wear komplikaciju teikejui reikia senosios Wearable Support bibliotekos:
+# joje yra ComplicationProviderService. Gradle nereikia - uztenka is AAR
+# istraukti classes.jar. Parsisiunciam patys, kad nieko nelaikytume git'e.
+# Tas pats kelias, kaip tools/valloxwatch/build.sh (2026-09-06).
+LIBS="$HERE/libs"
+WEARABLE="$LIBS/wearable-2.9.0.jar"
+if [ ! -f "$WEARABLE" ]; then
+  echo "==> 0/5  parsisiuncia Wearable Support (vienkartinis)"
+  mkdir -p "$LIBS"
+  AAR="$LIBS/wearable-2.9.0.aar"
+  curl -sL -o "$AAR" "https://dl.google.com/dl/android/maven2/com/google/android/support/wearable/2.9.0/wearable-2.9.0.aar"
+  python - "$AAR" "$WEARABLE" <<'PYX'
+import shutil, sys, zipfile
+with zipfile.ZipFile(sys.argv[1]) as z, open(sys.argv[2], "wb") as f:
+    shutil.copyfileobj(z.open("classes.jar"), f)
+PYX
+  rm -f "$AAR"
+  echo "    $(stat -c%s "$WEARABLE") B"
+fi
+
 rm -rf "$OUT"
 mkdir -p "$OUT/gen" "$OUT/classes" "$OUT/dex"
 
@@ -55,7 +76,8 @@ echo "==> 3/5  javac"
 # bet @failo turinio - ne, ir javac gauna "\c\Users\..."
 find "$HERE/src" "$OUT/gen" -name '*.java' -exec cygpath -w {} + > "$OUT/sources.txt"
 if ! "$JDK/bin/javac" -nowarn -source 11 -target 11 \
-     -cp "$PLATFORM" -d "$OUT/classes" "@$OUT/sources.txt" \
+     -cp "$(cygpath -w "$PLATFORM");$(cygpath -w "$WEARABLE")" \
+     -d "$OUT/classes" "@$OUT/sources.txt" \
      > "$OUT/javac.log" 2>&1; then
   grep -v 'bootstrap class path' "$OUT/javac.log" >&2
   exit 1
@@ -63,8 +85,9 @@ fi
 
 echo "==> 4/5  d8"
 find "$OUT/classes" -name '*.class' -exec cygpath -w {} + > "$OUT/classes.txt"
+# Bibliotekos klases turi patekti i dex - irenginyje ju nera.
 "$BT/d8.bat" --min-api "$MIN_SDK" --lib "$PLATFORM" \
-  --output "$OUT/dex" "@$OUT/classes.txt"
+  --output "$OUT/dex" "@$OUT/classes.txt" "$(cygpath -w "$WEARABLE")"
 
 echo "==> 5/5  pakuoju, lygiuoju, pasirasau"
 python - "$OUT/base.apk" "$OUT/dex/classes.dex" <<'PY'

@@ -5,10 +5,46 @@
     <string name="offline">OFFLINE</string>
     <string name="connecting">…</string>
     <string name="dash">—</string>
-    <string name="tap_hint">Tap to refresh</string>
+    <string name="tap_hint">Tap to refresh · hold for settings</string>
     <!-- %1$d - sekundes nuo paskutinio sekmingo atsakymo -->
     <string name="stale">no answer %1$ds</string>
     <string name="done">DONE</string>
+    <string name="canceled">CANCELED</string>
+    <string name="stopped">STOPPED</string>
+    <string name="idle">IDLE</string>
     <string name="layers">%1$d layers</string>
     <string name="finished_ago">finished %1$s ago</string>
+    <string name="ended_ago">ended %1$s ago</string>
+    <string name="no_printer">No printer</string>
+    <string name="no_printer_hint">Hold to add one</string>
+    <string name="watching">watching · %1$s</string>
+
+    <!-- Nustatymu langas -->
+    <string name="t_settings">SETTINGS</string>
+    <string name="t_background">BACKGROUND</string>
+    <string name="bg_off">Off</string>
+    <string name="bg_const">Constantly</string>
+    <string name="bg_2">Every 2 min</string>
+    <string name="bg_5">Every 5 min</string>
+    <string name="bg_10">Every 10 min</string>
+    <string name="bg_hint">Starts when you close the app during a print, stops 20 min after it ends. Exact while worn; on a table it may stretch to ~10 min.</string>
+    <string name="t_alerts">ALERTS</string>
+    <string name="a_end">Print end</string>
+    <string name="a_warn">Resin low</string>
+    <string name="a_stop">Resin out</string>
+    <string name="a_pause">Paused</string>
+    <string name="t_printer">PRINTER</string>
+    <string name="s_auto">Autodiscovery</string>
+    <string name="auto_hint">Finds tinymaker.lan on your network. Turn off to enter IP addresses (up to 4 printers).</string>
+    <string name="a_add">Add printer</string>
+    <string name="a_close">Close</string>
+
+    <!-- IP langas -->
+    <string name="t_ip">PRINTER IP</string>
+    <string name="a_save">Save</string>
+    <string name="a_remove">Remove</string>
+    <string name="e_ip">Not an IP address</string>
+    <string name="e_checking">checking…</string>
+    <string name="e_ok">printer found</string>
+    <string name="e_none">no answer - saved anyway</string>
 </resources>

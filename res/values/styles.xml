@@ -4,9 +4,53 @@
       Bruksztelejimas-atmesti isjungtas. 2026-09-05 ADB Toggle pamoka: Wear OS
       apvaliame ekrane bakstelejimas su keliais pikseliais judesio perskaitomas
       kaip "atgal", ir paspaudimas nepasiekia lango. Cia bakstelejimas yra
-      atnaujinimas, tad tas pats butu nutike. Iseiti - fiziniu Back mygtuku.
+      atnaujinimas, tad tas pats butu nutike. Iseiti - braukimu aukstyn arba
+      fiziniu Back mygtuku (gestai gaudomi dispatchTouchEvent).
     -->
     <style name="NoSwipe" parent="@android:style/Theme.DeviceDefault">
         <item name="android:windowSwipeToDismiss">false</item>
+    </style>
+
+    <!-- Pasirinkimo mygtukas nustatymuose (aktyvus - melynas, kiti - pilki). -->
+    <style name="Mygtukas">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingTop">9dp</item>
+        <item name="android:paddingBottom">9dp</item>
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:background">@drawable/mygtukas</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">#E8ECF5</item>
+    </style>
+
+    <!-- Vienas IP adreso langelis (iki triju skaitmenu). -->
+    <style name="IpLaukas">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="android:paddingLeft">0dp</item>
+        <item name="android:paddingRight">0dp</item>
+        <item name="android:background">@drawable/veiksmas</item>
+        <item name="android:gravity">center</item>
+        <item name="android:inputType">number</item>
+        <item name="android:maxLength">3</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">#E8ECF5</item>
+    </style>
+
+    <style name="IpTaskas">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">bottom</item>
+        <item name="android:paddingLeft">2dp</item>
+        <item name="android:paddingRight">2dp</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">#7E8CAE</item>
+        <item name="android:text">.</item>
     </style>
 </resources>

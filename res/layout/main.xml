@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Apvalus 438x438 ekranas. Ziedas piesiamas pakrasciu (RingView), o tekstas
-  guli jo viduje. Salines parastes 46dp: ties virsumi ir apacia apskritimas
-  siaureja, o tekstas ten neturi lipti ant ziedo.
+  Apvalus 438x438 ekranas. Vienas pagrindinis vaizdas (ziedas + tekstas) ir du
+  langai virs jo: nustatymai (nust) ir IP ivedimas (ipl), abu "gone", kol
+  neatidaryti. Langai - ne atskiros veiklos: taip Back ir braukimas atgal
+  lieka musu rankose (Vallox pamoka).
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/root"
@@ -10,81 +11,328 @@
     android:layout_height="match_parent"
     android:background="#000000">
 
-    <lt.vsid.tinystatus.RingView
-        android:id="@+id/ring"
+    <FrameLayout
+        android:id="@+id/ekranas"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:paddingLeft="30dp"
-        android:paddingRight="30dp">
+        <lt.vsid.tinystatus.RingView
+            android:id="@+id/ring"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
+        <!-- Spausdintuvo vardas - tik kai ju keli. Guli ziedo viduje virsuje. -->
         <TextView
-            android:id="@+id/model"
+            android:id="@+id/printer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="28dp"
             android:gravity="center"
             android:maxLines="1"
             android:ellipsize="end"
-            android:textSize="12sp"
-            android:textColor="#8A8A8E"
-            android:text="@string/dash" />
-        <TextView
-            android:id="@+id/layer"
+            android:textSize="11sp"
+            android:textColor="#5B9BF3"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingLeft="30dp"
+            android:paddingRight="30dp">
+
+            <TextView
+                android:id="@+id/model"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textSize="12sp"
+                android:textColor="#8A8A8E"
+                android:text="@string/dash" />
+            <TextView
+                android:id="@+id/layer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:maxLines="1"
+                android:layout_marginTop="8dp"
+                android:textSize="26sp"
+                android:textStyle="bold"
+                android:textColor="#4D9DF7"
+                android:text="@string/dash" />
+            <TextView
+                android:id="@+id/state"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:maxLines="1"
+                android:textSize="18sp"
+                android:autoSizeTextType="uniform"
+                android:autoSizeMinTextSize="12sp"
+                android:autoSizeMaxTextSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#2FD4B5"
+                android:text="@string/connecting" />
+            <TextView
+                android:id="@+id/remaining"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:maxLines="1"
+                android:textSize="15sp"
+                android:textColor="#F5C542"
+                android:text="@string/dash" />
+            <TextView
+                android:id="@+id/resin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:maxLines="1"
+                android:layout_marginTop="6dp"
+                android:textSize="12sp"
+                android:textColor="#8A8A8E"
+                android:text="@string/dash" />
+            <TextView
+                android:id="@+id/hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:maxLines="1"
+                android:layout_marginTop="6dp"
+                android:textSize="10sp"
+                android:textColor="#4A4A50"
+                android:text="@string/tap_hint" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- ============================================================ NUSTATYMAI -->
+    <ScrollView
+        android:id="@+id/nust"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#000000"
+        android:paddingLeft="34dp"
+        android:paddingRight="36dp"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:maxLines="1"
-            android:layout_marginTop="8dp"
-            android:textSize="26sp"
-            android:textStyle="bold"
-            android:textColor="#4D9DF7"
-            android:text="@string/dash" />
-        <TextView
-            android:id="@+id/state"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:paddingTop="26dp"
+            android:paddingBottom="40dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:maxLines="1"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#5B9BF3"
+                android:layout_marginBottom="4dp"
+                android:text="@string/t_background" />
+
+            <TextView
+                android:id="@+id/bg_off"
+                style="@style/Mygtukas"
+                android:text="@string/bg_off" />
+            <TextView
+                android:id="@+id/bg_const"
+                style="@style/Mygtukas"
+                android:text="@string/bg_const" />
+            <TextView
+                android:id="@+id/bg_2"
+                style="@style/Mygtukas"
+                android:text="@string/bg_2" />
+            <TextView
+                android:id="@+id/bg_5"
+                style="@style/Mygtukas"
+                android:text="@string/bg_5" />
+            <TextView
+                android:id="@+id/bg_10"
+                style="@style/Mygtukas"
+                android:text="@string/bg_10" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_marginTop="6dp"
+                android:textSize="10sp"
+                android:textColor="#7E8CAE"
+                android:text="@string/bg_hint" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:maxLines="1"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#5B9BF3"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="4dp"
+                android:text="@string/t_alerts" />
+
+            <!-- Jungikliu eilutes dedamos kodu (perjungiklis): vardas atskirai
+                 nuo jungiklio, kitaip Switch nukerpa teksta. -->
+            <LinearLayout
+                android:id="@+id/alerts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:maxLines="1"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#5B9BF3"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="4dp"
+                android:text="@string/t_printer" />
+
+            <LinearLayout
+                android:id="@+id/auto_eilute"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_marginTop="2dp"
+                android:textSize="10sp"
+                android:textColor="#7E8CAE"
+                android:text="@string/auto_hint" />
+
+            <!-- Spausdintuvu sarasas (tik kai autodiscovery isjungtas). -->
+            <LinearLayout
+                android:id="@+id/printers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView
+                android:id="@+id/n_close"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingTop="9dp"
+                android:paddingBottom="9dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/veiksmas"
+                android:textSize="15sp"
+                android:textColor="#E8ECF5"
+                android:text="@string/a_close" />
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- ============================================================ IP LANGAS -->
+    <!--
+      Atskiras langas, ne eilute nustatymuose: ivedant reikia klaviaturos, o ji
+      uzdengia puse ekrano. Keturi langeliai, ne vienas laukas su tasku:
+      inputType="number" taska atmeta, o ilgas adresas netilpo (Vallox).
+    -->
+    <ScrollView
+        android:id="@+id/ipl"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#000000"
+        android:paddingLeft="14dp"
+        android:paddingRight="14dp"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:maxLines="1"
-            android:textSize="18sp"
-            android:autoSizeTextType="uniform"
-            android:autoSizeMinTextSize="12sp"
-            android:autoSizeMaxTextSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#2FD4B5"
-            android:text="@string/connecting" />
-        <TextView
-            android:id="@+id/remaining"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:maxLines="1"
-            android:textSize="15sp"
-            android:textColor="#F5C542"
-            android:text="@string/dash" />
-        <TextView
-            android:id="@+id/resin"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:maxLines="1"
-            android:layout_marginTop="6dp"
-            android:textSize="12sp"
-            android:textColor="#8A8A8E"
-            android:text="@string/dash" />
-        <TextView
-            android:id="@+id/hint"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:maxLines="1"
-            android:layout_marginTop="6dp"
-            android:textSize="10sp"
-            android:textColor="#4A4A50"
-            android:text="@string/tap_hint" />
-    </LinearLayout>
+            android:orientation="vertical"
+            android:paddingTop="26dp"
+            android:paddingBottom="26dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:maxLines="1"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#5B9BF3"
+                android:layout_marginBottom="10dp"
+                android:text="@string/t_ip" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/k_ip1"
+                    style="@style/IpLaukas"
+                    android:imeOptions="actionNext" />
+                <TextView style="@style/IpTaskas" />
+                <EditText
+                    android:id="@+id/k_ip2"
+                    style="@style/IpLaukas"
+                    android:imeOptions="actionNext" />
+                <TextView style="@style/IpTaskas" />
+                <EditText
+                    android:id="@+id/k_ip3"
+                    style="@style/IpLaukas"
+                    android:imeOptions="actionNext" />
+                <TextView style="@style/IpTaskas" />
+                <EditText
+                    android:id="@+id/k_ip4"
+                    style="@style/IpLaukas"
+                    android:imeOptions="actionDone" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/k_irasyk"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingTop="9dp"
+                android:paddingBottom="9dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/veiksmas"
+                android:textSize="15sp"
+                android:textColor="#E8ECF5"
+                android:text="@string/a_save" />
+
+            <TextView
+                android:id="@+id/k_busena"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_marginTop="8dp"
+                android:minHeight="18dp"
+                android:textSize="12sp"
+                android:textColor="#7E8CAE" />
+
+            <TextView
+                android:id="@+id/k_isimk"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingTop="9dp"
+                android:paddingBottom="9dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/mygtukas"
+                android:textSize="15sp"
+                android:textColor="#E8ECF5"
+                android:text="@string/a_remove" />
+        </LinearLayout>
+    </ScrollView>
 </FrameLayout>
