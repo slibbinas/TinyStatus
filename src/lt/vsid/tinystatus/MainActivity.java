@@ -75,6 +75,8 @@ public class MainActivity extends Activity {
     private int rodomas;
     /** Kuri spausdintuva redaguoja IP langas; -1 - naujas. */
     private int redaguojamas = -1;
+    /** Po ilgo paspaudimo - nuryti likusi gesta, kol pirstas pakeliamas. */
+    private boolean nurykIkiPakelimo;
 
     private final Runnable loop = new Runnable() {
         @Override
@@ -297,7 +299,7 @@ public class MainActivity extends Activity {
             layer.setText(R.string.dash);
             remaining.setText(R.string.dash);
             resin.setText(R.string.dash);
-            hint.setText(R.string.tap_hint);
+            hint.setText("");
             ring.set(-1f, false);
             return;
         }
@@ -308,7 +310,7 @@ public class MainActivity extends Activity {
             int min = TsSargas.intervalas(this);
             hint.setText(getString(R.string.watching, min == 1 ? "30 s" : min + " min"));
         } else {
-            hint.setText(R.string.tap_hint);
+            hint.setText("");
         }
 
         if (TsPranesimas.rodomDone(this, n, b)) {
@@ -397,6 +399,9 @@ public class MainActivity extends Activity {
             @Override
             public void onLongPress(MotionEvent e) {
                 Log.i(TAG, "ilgas paspaudimas - nustatymai");
+                // Pirstas dar ant ekrano: jo judesys nuslinktu ka tik
+                // atidaryta langa (antraste dingdavo virsuje). Nurijam.
+                nurykIkiPakelimo = true;
                 rodykNustatymus(true);
             }
 
@@ -428,6 +433,13 @@ public class MainActivity extends Activity {
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent e) {
+        if (nurykIkiPakelimo) {
+            if (e.getActionMasked() == MotionEvent.ACTION_UP
+                    || e.getActionMasked() == MotionEvent.ACTION_CANCEL) {
+                nurykIkiPakelimo = false;
+            }
+            return true;
+        }
         if (nust.getVisibility() == View.VISIBLE || ipl.getVisibility() == View.VISIBLE) {
             // Mygtukai lange dirba patys (super), mes is salies ziurim tik,
             // ar tai nebuvo braukimas atgal.
@@ -631,9 +643,9 @@ public class MainActivity extends Activity {
         TextView v = new TextView(this);
         v.setText(tekstas);
         v.setGravity(Gravity.CENTER);
-        v.setTextSize(15);
+        v.setTextSize(13);
         v.setTextColor(0xFFE8ECF5);
-        v.setPadding(0, Math.round(9 * t), 0, Math.round(9 * t));
+        v.setPadding(0, Math.round(7 * t), 0, Math.round(7 * t));
         v.setBackgroundResource(R.drawable.mygtukas);
         v.setSelected(pazymetas);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
@@ -673,7 +685,7 @@ public class MainActivity extends Activity {
         TextView v = new TextView(this);
         v.setText(vardas);
         v.setSingleLine(true);
-        v.setTextSize(14);
+        v.setTextSize(13);
         v.setEllipsize(TextUtils.TruncateAt.END);
         v.setTextColor(0xFFE8ECF5);
         v.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));

@@ -96,16 +96,26 @@
                 android:textSize="12sp"
                 android:textColor="#8A8A8E"
                 android:text="@string/dash" />
+            <!-- Prierasas TIK busenai ("no answer 20s", "watching"). Kad
+                 bakstelejimas atnaujina, pasako ikona apacioje, ne tekstas (V). -->
             <TextView
                 android:id="@+id/hint"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:maxLines="1"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="4dp"
                 android:textSize="10sp"
                 android:textColor="#4A4A50"
-                android:text="@string/tap_hint" />
+                android:text="" />
+            <ImageView
+                android:id="@+id/refresh"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginTop="4dp"
+                android:src="@drawable/ic_ts_refresh"
+                android:tint="#4A4A50"
+                android:contentDescription="@string/tap_hint" />
         </LinearLayout>
     </FrameLayout>
 
@@ -133,7 +143,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:maxLines="1"
-                android:textSize="15sp"
+                android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="#5B9BF3"
                 android:layout_marginBottom="4dp"
@@ -174,7 +184,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:maxLines="1"
-                android:textSize="15sp"
+                android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="#5B9BF3"
                 android:layout_marginTop="20dp"
@@ -194,7 +204,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:maxLines="1"
-                android:textSize="15sp"
+                android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="#5B9BF3"
                 android:layout_marginTop="20dp"
@@ -228,11 +238,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:paddingTop="9dp"
-                android:paddingBottom="9dp"
+                android:paddingTop="7dp"
+                android:paddingBottom="7dp"
                 android:layout_marginTop="20dp"
                 android:background="@drawable/veiksmas"
-                android:textSize="15sp"
+                android:textSize="13sp"
                 android:textColor="#E8ECF5"
                 android:text="@string/a_close" />
         </LinearLayout>
@@ -266,7 +276,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:maxLines="1"
-                android:textSize="15sp"
+                android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="#5B9BF3"
                 android:layout_marginBottom="10dp"
@@ -303,11 +313,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:paddingTop="9dp"
-                android:paddingBottom="9dp"
+                android:paddingTop="7dp"
+                android:paddingBottom="7dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/veiksmas"
-                android:textSize="15sp"
+                android:textSize="13sp"
                 android:textColor="#E8ECF5"
                 android:text="@string/a_save" />
 
@@ -326,11 +336,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:paddingTop="9dp"
-                android:paddingBottom="9dp"
+                android:paddingTop="7dp"
+                android:paddingBottom="7dp"
                 android:layout_marginTop="8dp"
                 android:background="@drawable/mygtukas"
-                android:textSize="15sp"
+                android:textSize="13sp"
                 android:textColor="#E8ECF5"
                 android:text="@string/a_remove" />
         </LinearLayout>
