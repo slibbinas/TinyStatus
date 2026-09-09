@@ -27,7 +27,7 @@
     <string name="bg_5">Every 5 min</string>
     <string name="bg_10">Every 10 min</string>
     <!-- Trumpai (V): ilgas paaiskinimas gyvena INSTALL.md, ne ekrane. -->
-    <string name="bg_hint">Only while printing. Open app = 5 s</string>
+    <string name="bg_hint">Only while printing</string>
     <string name="t_alerts">ALERTS</string>
     <string name="a_end">Print end</string>
     <string name="a_warn">Resin low</string>
@@ -35,7 +35,10 @@
     <string name="a_pause">Paused</string>
     <string name="t_printer">PRINTER</string>
     <string name="s_auto">By name</string>
-    <string name="auto_hint">Finds tinymaker.lan. Off: up to 4 IPs</string>
+    <!-- Prierasas keiciasi su jungikliu: pasakyti, ka jis DARO, verta
+         labiau nei pakartoti jo varda. -->
+    <string name="auto_on">Finds tinymaker.lan</string>
+    <string name="auto_off">Up to 4 printers</string>
     <string name="a_add">Add printer</string>
     <string name="a_close">Close</string>
 

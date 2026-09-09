@@ -366,7 +366,7 @@ public class MainActivity extends Activity {
             didelis.setText(R.string.no_printer);
             didelis.setTextColor(getColor(R.color.brand_warn));
             state.setText(R.string.no_printer_hint);
-            state.setTextColor(getColor(R.color.brand_muted));
+            state.setTextColor(getColor(R.color.brand_latte));
             model.setText(R.string.dash);
             layer.setText(R.string.dash);
             resin.setText(R.string.dash);
@@ -411,7 +411,7 @@ public class MainActivity extends Activity {
             didelis.setTextColor(getColor(gerai ? R.color.brand_ok : R.color.brand_warn));
             state.setText(getString(gerai ? R.string.finished_ago : R.string.ended_ago,
                     since(now - end)));
-            state.setTextColor(getColor(R.color.brand_muted));
+            state.setTextColor(getColor(R.color.brand_latte));
             model.setText(was.isEmpty() ? getString(R.string.dash) : was);
             layer.setText(getString(R.string.layers, TsPranesimas.pabaigosSluoksniai(this, n)));
             ring.set(gerai ? 1f : -1f, false);
@@ -419,16 +419,16 @@ public class MainActivity extends Activity {
             didelis.setText(b.remainingTime.isEmpty() ? getString(R.string.dash) : b.remainingTime);
             didelis.setTextColor(getColor(R.color.brand_text));
             state.setText(b.state.isEmpty() ? "" : b.state.toUpperCase());
-            state.setTextColor(getColor(b.paused ? R.color.brand_warn : R.color.brand_muted));
+            state.setTextColor(getColor(b.paused ? R.color.brand_warn : R.color.brand_latte));
             model.setText(b.model.isEmpty() ? getString(R.string.dash) : b.model);
             layer.setText(b.total > 0 ? b.layerText : getString(R.string.dash));
             // Procentu API neduoda - skaiciuojam patys is sluoksniu.
             ring.set(b.progress(), b.paused);
         } else {
             didelis.setText(R.string.idle);
-            didelis.setTextColor(getColor(R.color.brand_muted));
+            didelis.setTextColor(getColor(R.color.brand_latte));
             state.setText(b.state.isEmpty() ? "" : b.state.toUpperCase());
-            state.setTextColor(getColor(R.color.brand_muted));
+            state.setTextColor(getColor(R.color.brand_latte));
             model.setText(R.string.dash);
             layer.setText(R.string.dash);
             ring.set(-1f, false);
@@ -436,7 +436,7 @@ public class MainActivity extends Activity {
 
         String r = b.resinLine();
         resin.setText(r.isEmpty() ? getString(R.string.dash) : r);
-        resin.setTextColor(getColor(b.vatLow ? R.color.brand_warn : R.color.brand_muted));
+        resin.setTextColor(getColor(b.vatLow ? R.color.brand_warn : R.color.brand_latte));
     }
 
     /**
@@ -743,14 +743,23 @@ public class MainActivity extends Activity {
 
     private void pieskSarasa() {
         printers.removeAllViews();
-        if (TsSaltinis.auto(this)) {
+        boolean auto = TsSaltinis.auto(this);
+        // Prierasas sako, ka jungiklis DARO, o ne kartoja jo varda.
+        ((TextView) findViewById(R.id.auto_hint)).setText(auto ? R.string.auto_on : R.string.auto_off);
+        if (auto) {
             String ip = TsSaltinis.prefs(this).getString("pr.0.seen", "");
             String host = TsSaltinis.prefs(this).getString("pr.0.host", "");
-            if (!host.isEmpty()) {
+            if (host.isEmpty()) {
+                // Tuscias rodinys vis tiek uzima vietos ir palieka tarpa iki
+                // kito skyrelio (V pastebejo 2026-09-10) - tad slepiam visa.
+                printers.setVisibility(View.GONE);
+            } else {
+                printers.setVisibility(View.VISIBLE);
                 printers.addView(prierasas(host + (ip.isEmpty() ? "" : " · " + ip)));
             }
             return;
         }
+        printers.setVisibility(View.VISIBLE);
         int kiek = TsSaltinis.skaicius(this);
         for (int n = 0; n < kiek; n++) {
             final int nr = n;

@@ -42,7 +42,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:paddingTop="16dp">
 
             <!-- Spausdintuvo vardas - tik kai ju keli. -->
             <TextView
@@ -57,9 +58,9 @@
                 android:textColor="@color/brand_blue_light"
                 android:visibility="gone" />
             <TextView
-                android:id="@+id/layer"
+                android:id="@+id/model"
                 android:layout_width="match_parent"
-                android:layout_height="16dp"
+                android:layout_height="17dp"
                 android:gravity="center"
                 android:maxLines="1"
                 android:ellipsize="end"
@@ -93,18 +94,18 @@
                 android:autoSizeMinTextSize="11sp"
                 android:autoSizeMaxTextSize="14sp"
                 android:textStyle="bold"
-                android:textColor="@color/brand_muted"
+                android:textColor="@color/brand_latte"
                 android:text="" />
             <TextView
-                android:id="@+id/model"
+                android:id="@+id/layer"
                 android:layout_width="match_parent"
-                android:layout_height="17dp"
+                android:layout_height="16dp"
                 android:gravity="center"
                 android:maxLines="1"
                 android:ellipsize="end"
                 android:includeFontPadding="false"
                 android:textSize="12sp"
-                android:textColor="@color/brand_muted"
+                android:textColor="@color/brand_latte"
                 android:text="@string/dash" />
             <TextView
                 android:id="@+id/resin"
@@ -115,7 +116,7 @@
                 android:ellipsize="end"
                 android:includeFontPadding="false"
                 android:textSize="12sp"
-                android:textColor="@color/brand_muted"
+                android:textColor="@color/brand_latte"
                 android:text="@string/dash" />
             <TextView
                 android:id="@+id/hint"
@@ -168,6 +169,43 @@
                 android:textStyle="bold"
                 android:textColor="@color/brand_blue_light"
                 android:layout_marginBottom="4dp"
+                android:text="@string/t_printer" />
+
+            <LinearLayout
+                android:id="@+id/auto_eilute"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView
+                android:id="@+id/auto_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_marginTop="2dp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textSize="10sp"
+                android:textColor="@color/brand_muted"
+                android:text="@string/auto_on" />
+
+            <!-- Spausdintuvu sarasas (tik kai autodiscovery isjungtas). -->
+            <LinearLayout
+                android:id="@+id/printers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:maxLines="1"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/brand_blue_light"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="4dp"
                 android:text="@string/t_background" />
 
             <TextView
@@ -196,6 +234,8 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:layout_marginTop="6dp"
+                android:maxLines="1"
+                android:ellipsize="end"
                 android:textSize="10sp"
                 android:textColor="@color/brand_muted"
                 android:text="@string/bg_hint" />
@@ -216,40 +256,6 @@
                  nuo jungiklio, kitaip Switch nukerpa teksta. -->
             <LinearLayout
                 android:id="@+id/alerts"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:maxLines="1"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="@color/brand_blue_light"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="4dp"
-                android:text="@string/t_printer" />
-
-            <LinearLayout
-                android:id="@+id/auto_eilute"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:layout_marginTop="2dp"
-                android:textSize="10sp"
-                android:textColor="@color/brand_muted"
-                android:text="@string/auto_hint" />
-
-            <!-- Spausdintuvu sarasas (tik kai autodiscovery isjungtas). -->
-            <LinearLayout
-                android:id="@+id/printers"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical" />
@@ -280,8 +286,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/brand_bg"
-        android:paddingLeft="14dp"
-        android:paddingRight="14dp"
+        android:paddingLeft="30dp"
+        android:paddingRight="30dp"
         android:scrollbars="none"
         android:visibility="gone">
 
@@ -347,9 +353,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:layout_marginTop="8dp"
-                android:minHeight="18dp"
-                android:textSize="12sp"
+                android:layout_marginTop="4dp"
+                android:minHeight="14dp"
+                android:textSize="11sp"
                 android:textColor="@color/brand_muted" />
 
             <TextView
@@ -359,7 +365,7 @@
                 android:gravity="center"
                 android:paddingTop="7dp"
                 android:paddingBottom="7dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="4dp"
                 android:background="@drawable/mygtukas"
                 android:textSize="13sp"
                 android:textColor="@color/brand_text"

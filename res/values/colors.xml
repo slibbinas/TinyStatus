@@ -27,6 +27,9 @@
     <color name="brand_button">#2E2E33</color>
     <color name="brand_text">#EEEEEE</color>
     <color name="brand_muted">#8A8A92</color>
+    <!-- Spausdintuvo korpuso atspalvis (V): apatines eilutes
+         pilkos atrode kaip isjungtos, o si sako "cia irgi duomenys". -->
+    <color name="brand_latte">#CBBFAE</color>
     <color name="brand_faint">#55555C</color>
     <color name="brand_ok">#2FBF4F</color>
     <color name="brand_warn">#FFB15F</color>
