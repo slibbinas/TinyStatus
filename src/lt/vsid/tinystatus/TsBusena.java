@@ -120,22 +120,23 @@ public final class TsBusena {
     }
 
     /**
-     * Dervos eilute ekranui: KIEK LIKO VAT'e (V), ne kiek sunaudota - "7.4 ml · 8.6 g".
-     * Sena firmware be vatGrams - tik mililitrai; visai be vat - resinText.
+     * Dervos eilute ekranui: KIEK LIKO VAT'e (V), ne kiek sunaudota, ir tai
+     * pasakyta zodziu - "7.4 ml left". Vien skaicius neatsako i klausima, ar
+     * tai likutis, ar sunaudotas kiekis.
+     *
+     * Mililitrais, ne gramais (V): gramai priklauso nuo dervos tankio, o
+     * buteliai ir VAT'as matuojami mililitrais.
      */
     public String resinLine() {
         if (vatRemainingMl < 0) {
             return resinText.isEmpty() ? vatText : resinText;
         }
-        String ml = String.format("%.1f ml", vatRemainingMl);
-        return vatGrams >= 0 ? ml + String.format(" · %.1f g", vatGrams) : ml;
+        return String.format("%.1f ml left", vatRemainingMl);
     }
 
-    /** Derva komplikacijai: gramais, "8.6g" (V); be svorio - "7.4ml". */
+    /** Derva komplikacijai: "7.4ml" - lizde vietos zodziui nera, ji pasako pats
+     *  teikejo vardas ("TinyMaker resin left"). */
     public String resinShort() {
-        if (vatGrams >= 0) {
-            return String.format("%.1fg", vatGrams);
-        }
         return vatRemainingMl >= 0 ? String.format("%.1fml", vatRemainingMl) : "";
     }
 }

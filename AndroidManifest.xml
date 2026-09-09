@@ -78,7 +78,7 @@
             android:name=".TsKompl$Eiga"
             android:icon="@drawable/ic_ts_print"
             android:exported="true"
-            android:label="TinyMaker progress"
+            android:label="TinyMaker progress %"
             android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
             <intent-filter>
                 <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
@@ -112,7 +112,7 @@
             android:name=".TsKompl$Derva"
             android:icon="@drawable/ic_ts_drop"
             android:exported="true"
-            android:label="TinyMaker resin"
+            android:label="TinyMaker resin left"
             android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
             <intent-filter>
                 <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
@@ -131,7 +131,7 @@
             android:name=".TsKompl$Ziedas"
             android:icon="@drawable/ic_ts_print"
             android:exported="true"
-            android:label="TinyMaker ring"
+            android:label="TinyMaker progress ring"
             android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
             <intent-filter>
                 <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />

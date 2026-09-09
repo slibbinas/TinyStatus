@@ -132,7 +132,8 @@ public abstract class TsKompl extends ComplicationProviderService {
         }
     }
 
-    /** Derva VAT'e gramais: "8.6g" (V). Rodoma ir ramybeje - ji niekur nedingsta. */
+    /** Kiek dervos LIKO VAT'e: "7.4ml" (V). Rodoma ir ramybeje - ji niekur nedingsta.
+     *  Sunaudoto kiekio teikejo nera: V - "used seip neidomi". */
     public static class Derva extends TsKompl {
         @Override
         protected String tekstas(Context c, int n, TsBusena b) {
