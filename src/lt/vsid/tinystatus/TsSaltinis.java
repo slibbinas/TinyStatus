@@ -85,9 +85,14 @@ public final class TsSaltinis {
     public static void irasykSpausdintuva(Context c, int n, String ip, String vardas) {
         SharedPreferences p = prefs(c);
         int kiek = p.getInt("pr.n", 0);
-        if (n >= kiek) {
+        if (n < 0 || n >= kiek) {
+            // Naujas. (2026-09-09: su "n >= kiek" -1 praslysdavo ir virsdavo
+            // raktu "pr.-1", o sarasas likdavo tuscias.)
+            if (kiek >= MAX_PR) {
+                return;
+            }
             n = kiek;
-            kiek = Math.min(MAX_PR, kiek + 1);
+            kiek = kiek + 1;
         }
         p.edit().putInt("pr.n", kiek)
                 .putString("pr." + n + ".ip", ip)
