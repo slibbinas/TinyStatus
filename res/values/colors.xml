@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  TinyMaker firmines spalvos. Nusirasytos is paties projekto brandbook'o
+  (PlatformIO/Projects/TinyMakerWiFi/docs/brandbook.md, 2026-09-10), o ne
+  parinktos "panasios" - programele ant riesto turi atrodyti kaip to paties
+  daikto dalis, kaip ir pulto puslapis.
+
+  Oranzine yra VIENINTELIS firmos signalas (taip sako ir brandbook'as), todel
+  ja ciasi tik ziedas - pagrindinis dalykas ekrane. Zydra yra logotipo Wi-Fi
+  lanko spalva; ja gauna mygtukai ir sluoksniu skaicius.
+
+  Fonas paliktas GRYNAI JUODAS, o ne firmine #141416: OLED ekrane nedegantis
+  pikselis nevalgo baterijos, ir apvalus ekranas taip susilieja su korpusu.
+-->
+<resources>
+    <color name="brand_orange">#E8720C</color>
+    <color name="brand_orange_dim">#C95F06</color>
+    <color name="brand_blue">#4DA3FF</color>
+    <color name="brand_blue_light">#84BCF8</color>
+    <color name="brand_bg">#000000</color>
+    <color name="brand_line">#26262A</color>
+    <color name="brand_button">#2E2E33</color>
+    <color name="brand_button_hover">#3C3C42</color>
+    <color name="brand_text">#EEEEEE</color>
+    <color name="brand_muted">#8A8A92</color>
+    <color name="brand_faint">#55555C</color>
+    <color name="brand_ok">#2FBF4F</color>
+    <color name="brand_warn">#FFB15F</color>
+    <color name="brand_danger">#FF6B5A</color>
+    <!-- Tamsus tekstas ant zydro mygtuko: baltas ant #4DA3FF beveik nesiskaito. -->
+    <color name="on_blue">#10161D</color>
+</resources>

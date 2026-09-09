@@ -1,29 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  PASIRINKIMO mygtukas: aktyvus - sodri Vallox melyna, neaktyvus - pilkas (V).
-
-  Anksciau buvo atvirksciai: neaktyvus melyni, aktyvus sviesesnis melynas. Prie
-  penkiu melynu mygtuku ekrane pasirinkima tekdavo ieskoti pagal atspalvi, o tai
-  ne skirtumas, o mįslė. Pilka sako "sitas ne", melyna - "sitas dabar".
-
-  Paspaudimas sviesesnis uz pazymejima: kitaip pirstas neduotu jokio atsako.
+  PASIRINKIMO mygtukas: aktyvus - firmine TinyMaker zydra (logotipo Wi-Fi
+  lanko spalva), neaktyvus - firmine antrinio mygtuko pilkuma. Pilka sako
+  "sitas ne", zydra - "sitas dabar" (Vallox pamoka: penki vienodo atspalvio
+  mygtukai verčia pasirinkima ieskoti).
 -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
-            <solid android:color="#4A6FD8" />
+            <solid android:color="@color/brand_blue_light" />
             <corners android:radius="18dp" />
         </shape>
     </item>
     <item android:state_selected="true">
         <shape android:shape="rectangle">
-            <solid android:color="#2B3F9E" />
+            <solid android:color="@color/brand_blue" />
             <corners android:radius="18dp" />
         </shape>
     </item>
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#33363C" />
+            <solid android:color="@color/brand_button" />
             <corners android:radius="18dp" />
         </shape>
     </item>

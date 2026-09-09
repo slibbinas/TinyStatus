@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Pasirinkto mygtuko fonas yra sviesi firmine zydra, ir baltas tekstas ant jos
+  beveik nesiskaito (kontrastas ~2.4). Todel pazymetas mygtukas gauna TAMSU
+  teksta, o nepazymetas - sviesu.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="true" android:color="@color/on_blue" />
+    <item android:state_pressed="true" android:color="@color/on_blue" />
+    <item android:color="@color/brand_text" />
+</selector>

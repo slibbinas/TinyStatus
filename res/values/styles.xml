@@ -21,7 +21,7 @@
         <item name="android:layout_marginTop">5dp</item>
         <item name="android:background">@drawable/mygtukas</item>
         <item name="android:textSize">13sp</item>
-        <item name="android:textColor">#E8ECF5</item>
+        <item name="android:textColor">@color/mygtuko_tekstas</item>
     </style>
 
     <!-- Vienas IP adreso langelis (iki triju skaitmenu). -->
@@ -39,7 +39,7 @@
         <item name="android:maxLength">3</item>
         <item name="android:maxLines">1</item>
         <item name="android:textSize">13sp</item>
-        <item name="android:textColor">#E8ECF5</item>
+        <item name="android:textColor">@color/on_blue</item>
     </style>
 
     <style name="IpTaskas">
@@ -50,7 +50,7 @@
         <item name="android:paddingRight">2dp</item>
         <item name="android:paddingBottom">10dp</item>
         <item name="android:textSize">15sp</item>
-        <item name="android:textColor">#7E8CAE</item>
+        <item name="android:textColor">@color/brand_muted</item>
         <item name="android:text">.</item>
     </style>
 </resources>

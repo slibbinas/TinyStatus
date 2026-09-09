@@ -302,10 +302,10 @@ public class MainActivity extends Activity {
     private void sukis(boolean ar) {
         if (!ar) {
             refresh.clearAnimation();
-            refresh.setColorFilter(0xFF4A4A50);
+            refresh.setColorFilter(getColor(R.color.brand_faint));
             return;
         }
-        refresh.setColorFilter(0xFF2FD4B5);
+        refresh.setColorFilter(getColor(R.color.brand_orange));
         RotateAnimation a = new RotateAnimation(0, 360,
                 Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
         a.setDuration(650);
@@ -347,7 +347,7 @@ public class MainActivity extends Activity {
         int kiek = TsSaltinis.skaicius(this);
         if (kiek == 0) {
             state.setText(R.string.no_printer);
-            state.setTextColor(0xFFF5C542);
+            state.setTextColor(getColor(R.color.brand_warn));
             model.setText(R.string.dash);
             layer.setText(R.string.dash);
             remaining.setText(R.string.dash);
@@ -371,7 +371,7 @@ public class MainActivity extends Activity {
         if (b == null || age > DEAD_MS) {
             // Tikrai negyvas: nei karto negavom, arba tyli jau labai ilgai.
             state.setText(R.string.offline);
-            state.setTextColor(0xFFFF453A);
+            state.setTextColor(getColor(R.color.brand_danger));
             model.setText(R.string.dash);
             layer.setText(R.string.dash);
             remaining.setText(R.string.dash);
@@ -390,7 +390,7 @@ public class MainActivity extends Activity {
             boolean gerai = rusis == TsPranesimas.PABAIGA_BAIGTA;
             state.setText(gerai ? R.string.done
                     : (rusis == TsPranesimas.PABAIGA_ATSAUKTA ? R.string.canceled : R.string.stopped));
-            state.setTextColor(gerai ? 0xFF2FD4B5 : 0xFFF5C542);
+            state.setTextColor(gerai ? getColor(R.color.brand_ok) : getColor(R.color.brand_warn));
             model.setText(was.isEmpty() ? getString(R.string.dash) : was);
             layer.setText(getString(R.string.layers, TsPranesimas.pabaigosSluoksniai(this, n)));
             remaining.setText(getString(gerai ? R.string.finished_ago : R.string.ended_ago,
@@ -398,7 +398,7 @@ public class MainActivity extends Activity {
             ring.set(gerai ? 1f : -1f, false);
         } else if (b.busy) {
             state.setText(b.state.isEmpty() ? "?" : b.state.toUpperCase());
-            state.setTextColor(b.paused ? 0xFFF5C542 : 0xFF2FD4B5);
+            state.setTextColor(b.paused ? getColor(R.color.brand_warn) : getColor(R.color.brand_text));
             model.setText(b.model.isEmpty() ? getString(R.string.dash) : b.model);
             layer.setText(b.total > 0 ? b.layerText : getString(R.string.dash));
             remaining.setText(b.total > 0 ? b.remainingTime : getString(R.string.dash));
@@ -406,7 +406,7 @@ public class MainActivity extends Activity {
             ring.set(b.progress(), b.paused);
         } else {
             state.setText(b.state.isEmpty() ? getString(R.string.idle) : b.state.toUpperCase());
-            state.setTextColor(0xFF8A8A8E);
+            state.setTextColor(getColor(R.color.brand_muted));
             model.setText(R.string.dash);
             layer.setText(R.string.dash);
             remaining.setText(R.string.dash);
@@ -415,7 +415,7 @@ public class MainActivity extends Activity {
 
         String r = b.resinLine();
         resin.setText(r.isEmpty() ? getString(R.string.dash) : r);
-        resin.setTextColor(b.vatLow ? 0xFFF5C542 : 0xFF8A8A8E);
+        resin.setTextColor(b.vatLow ? getColor(R.color.brand_warn) : getColor(R.color.brand_muted));
     }
 
     // ------------------------------------------------------------ gestai
@@ -703,6 +703,7 @@ public class MainActivity extends Activity {
         if (kiek < TsSaltinis.MAX_PR) {
             TextView v = mygtukas(getString(R.string.a_add), false);
             v.setBackgroundResource(R.drawable.veiksmas);
+                v.setTextColor(getColor(R.color.on_blue));
             v.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View x) {
@@ -719,7 +720,7 @@ public class MainActivity extends Activity {
         v.setText(tekstas);
         v.setGravity(Gravity.CENTER);
         v.setTextSize(13);
-        v.setTextColor(0xFFE8ECF5);
+        v.setTextColor(getColorStateList(R.color.mygtuko_tekstas));
         v.setPadding(0, Math.round(7 * t), 0, Math.round(7 * t));
         v.setBackgroundResource(R.drawable.mygtukas);
         v.setSelected(pazymetas);
@@ -736,7 +737,7 @@ public class MainActivity extends Activity {
         v.setText(tekstas);
         v.setGravity(Gravity.CENTER);
         v.setTextSize(11);
-        v.setTextColor(0xFF8A8A8E);
+        v.setTextColor(getColor(R.color.brand_muted));
         v.setPadding(0, Math.round(6 * t), 0, 0);
         return v;
     }
@@ -762,7 +763,7 @@ public class MainActivity extends Activity {
         v.setSingleLine(true);
         v.setTextSize(13);
         v.setEllipsize(TextUtils.TruncateAt.END);
-        v.setTextColor(0xFFE8ECF5);
+        v.setTextColor(getColor(R.color.brand_text));
         v.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         e.addView(v);
 

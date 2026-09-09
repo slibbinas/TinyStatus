@@ -16,13 +16,16 @@ import android.view.View;
  */
 public class RingView extends View {
 
-    private static final int TRACK = 0xFF1C1C1E;
+    // TinyMaker firmines spalvos (zr. res/values/colors.xml). Ziedas oranzinis:
+    // brandbook'as sako, kad oranzine yra vienintelis firmos signalas, ir
+    // ekrane jis atitenka svarbiausiam dalykui - eigai.
+    private static final int TRACK = 0xFF26262A;
     /** Tarpeliai kas 10 % - piesiami fono spalva, tad ziedas atrodo dalytas. */
     private static final int GAP = 0xFF000000;
     private static final int DALYS = 10;
     private static final float GAP_DEG = 1.6f;
-    private static final int FILL = 0xFF2FD4B5;
-    private static final int FILL_PAUSED = 0xFFF5C542;
+    private static final int FILL = 0xFFE8720C;
+    private static final int FILL_PAUSED = 0xFFFFB15F;
     private static final float STROKE_DP = 9f;
     private static final float INSET_DP = 5f;
 

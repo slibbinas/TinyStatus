@@ -1,21 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  VEIKSMO mygtukas (atidaryti paskyra, issaugoti) ir ivedimo laukai.
-
-  Atskiras nuo mygtukas.xml todel, kad cia nera nei "aktyvus", nei "neaktyvus" -
-  veiksmas visada prieinamas. Su pasirinkimo spalvomis jis nuolat atrodytu
-  pilkas, t. y. isjungtas, nors nera.
+  VEIKSMO mygtukas (Save, Add printer, Close) ir ivedimo laukai. Atskiras nuo
+  mygtukas.xml todel, kad cia nera nei "aktyvus", nei "neaktyvus" - veiksmas
+  visada prieinamas, ir su pasirinkimo spalvomis jis nuolat atrodytu isjungtas.
 -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
-            <solid android:color="#4A6FD8" />
+            <solid android:color="@color/brand_blue_light" />
             <corners android:radius="18dp" />
         </shape>
     </item>
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#2B3F9E" />
+            <solid android:color="@color/brand_blue" />
             <corners android:radius="18dp" />
         </shape>
     </item>
