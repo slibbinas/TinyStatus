@@ -132,11 +132,11 @@ public abstract class TsKompl extends ComplicationProviderService {
         }
     }
 
-    /** Derva VAT'e mililitrais: "7.5". Rodoma ir ramybeje - ji niekur nedingsta. */
+    /** Derva VAT'e gramais: "8.6g" (V). Rodoma ir ramybeje - ji niekur nedingsta. */
     public static class Derva extends TsKompl {
         @Override
         protected String tekstas(Context c, int n, TsBusena b) {
-            return b.vatRemainingMl >= 0 ? String.format("%.1f", b.vatRemainingMl) : "";
+            return b.resinShort();
         }
 
         @Override

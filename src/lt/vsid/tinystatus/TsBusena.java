@@ -37,6 +37,7 @@ public final class TsBusena {
     public String resinText = "";
     public double vatRemainingMl = -1;
     public String vatText = "";
+    public double vatGrams = -1;
     public boolean vatLow;
     public String ip = "";
     /** Kada gauta (System.currentTimeMillis). */
@@ -75,6 +76,7 @@ public final class TsBusena {
             b.resinText = j.optString("resinText", "");
             b.vatRemainingMl = j.optDouble("vatRemainingMl", -1);
             b.vatText = j.optString("vatText", "");
+            b.vatGrams = j.optDouble("vatGrams", -1);
             b.vatLow = j.optBoolean("vatLow", false);
             b.ip = j.optString("ip", "");
             b.at = at;
@@ -117,8 +119,23 @@ public final class TsBusena {
         return (busy && remainingSecs > 0) ? at + remainingSecs * 1000L : 0;
     }
 
-    /** Dervos tekstas ekranui: resinText, o senai firmware - vatText. */
+    /**
+     * Dervos eilute ekranui: KIEK LIKO VAT'e (V), ne kiek sunaudota - "7.4 ml · 8.6 g".
+     * Sena firmware be vatGrams - tik mililitrai; visai be vat - resinText.
+     */
     public String resinLine() {
-        return resinText.isEmpty() ? vatText : resinText;
+        if (vatRemainingMl < 0) {
+            return resinText.isEmpty() ? vatText : resinText;
+        }
+        String ml = String.format("%.1f ml", vatRemainingMl);
+        return vatGrams >= 0 ? ml + String.format(" · %.1f g", vatGrams) : ml;
+    }
+
+    /** Derva komplikacijai: gramais, "8.6g" (V); be svorio - "7.4ml". */
+    public String resinShort() {
+        if (vatGrams >= 0) {
+            return String.format("%.1fg", vatGrams);
+        }
+        return vatRemainingMl >= 0 ? String.format("%.1fml", vatRemainingMl) : "";
     }
 }
