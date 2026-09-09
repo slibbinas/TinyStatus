@@ -64,7 +64,7 @@ public class MainActivity extends Activity {
 
     private final Handler ui = new Handler(Looper.getMainLooper());
 
-    private TextView state, model, layer, remaining, resin, hint, printer;
+    private TextView state, model, layer, didelis, resin, hint, printer;
     private RingView ring;
     private ImageView refresh;
     private View nust, ipl;
@@ -111,7 +111,7 @@ public class MainActivity extends Activity {
         state = findViewById(R.id.state);
         model = findViewById(R.id.model);
         layer = findViewById(R.id.layer);
-        remaining = findViewById(R.id.remaining);
+        didelis = findViewById(R.id.didelis);
         resin = findViewById(R.id.resin);
         hint = findViewById(R.id.hint);
         printer = findViewById(R.id.printer);
@@ -342,17 +342,24 @@ public class MainActivity extends Activity {
         return m >= 60 ? (m / 60) + "h " + (m % 60) + "m" : m + "m";
     }
 
-    /** Ekranas is atmintines: tinklas cia nedalyvauja. */
+    /**
+     * Ekranas is atmintines: tinklas cia nedalyvauja.
+     *
+     * Didysis skaicius viduryje yra ATSAKYMAS I SVARBIAUSIA KLAUSIMA, ir jis
+     * priklauso nuo busenos: spausdinant - kiek liko laiko, po spausdinimo -
+     * kaip baigesi, ramybeje ir be rysio - kad nera ko laukti.
+     */
     private void show() {
         int kiek = TsSaltinis.skaicius(this);
         if (kiek == 0) {
-            state.setText(R.string.no_printer);
-            state.setTextColor(getColor(R.color.brand_warn));
+            didelis.setText(R.string.no_printer);
+            didelis.setTextColor(getColor(R.color.brand_warn));
+            state.setText(R.string.no_printer_hint);
+            state.setTextColor(getColor(R.color.brand_muted));
             model.setText(R.string.dash);
             layer.setText(R.string.dash);
-            remaining.setText(R.string.dash);
             resin.setText(R.string.dash);
-            hint.setText(R.string.no_printer_hint);
+            hint.setText("");
             printer.setVisibility(View.GONE);
             ring.set(-1f, false);
             return;
@@ -370,11 +377,11 @@ public class MainActivity extends Activity {
 
         if (b == null || age > DEAD_MS) {
             // Tikrai negyvas: nei karto negavom, arba tyli jau labai ilgai.
-            state.setText(R.string.offline);
-            state.setTextColor(getColor(R.color.brand_danger));
+            didelis.setText(R.string.offline);
+            didelis.setTextColor(getColor(R.color.brand_danger));
+            state.setText("");
             model.setText(R.string.dash);
             layer.setText(R.string.dash);
-            remaining.setText(R.string.dash);
             resin.setText(R.string.dash);
             amzius();
             ring.set(-1f, false);
@@ -385,37 +392,40 @@ public class MainActivity extends Activity {
         if (TsPranesimas.rodomDone(this, n, b)) {
             // API pabaigos neturi, tad rodom TAI, KA MATEME PATYS.
             int rusis = TsPranesimas.pabaigosRusis(this, n);
-            String was = TsPranesimas.pabaigosModelis(this, n);
             long end = TsPranesimas.pabaigosLaikas(this, n);
             boolean gerai = rusis == TsPranesimas.PABAIGA_BAIGTA;
-            state.setText(gerai ? R.string.done
+            String was = TsPranesimas.pabaigosModelis(this, n);
+            didelis.setText(gerai ? R.string.done
                     : (rusis == TsPranesimas.PABAIGA_ATSAUKTA ? R.string.canceled : R.string.stopped));
-            state.setTextColor(gerai ? getColor(R.color.brand_ok) : getColor(R.color.brand_warn));
+            didelis.setTextColor(getColor(gerai ? R.color.brand_ok : R.color.brand_warn));
+            state.setText(getString(gerai ? R.string.finished_ago : R.string.ended_ago,
+                    since(now - end)));
+            state.setTextColor(getColor(R.color.brand_muted));
             model.setText(was.isEmpty() ? getString(R.string.dash) : was);
             layer.setText(getString(R.string.layers, TsPranesimas.pabaigosSluoksniai(this, n)));
-            remaining.setText(getString(gerai ? R.string.finished_ago : R.string.ended_ago,
-                    since(now - end)));
             ring.set(gerai ? 1f : -1f, false);
         } else if (b.busy) {
-            state.setText(b.state.isEmpty() ? "?" : b.state.toUpperCase());
-            state.setTextColor(b.paused ? getColor(R.color.brand_warn) : getColor(R.color.brand_text));
+            didelis.setText(b.remainingTime.isEmpty() ? getString(R.string.dash) : b.remainingTime);
+            didelis.setTextColor(getColor(R.color.brand_text));
+            state.setText(b.state.isEmpty() ? "" : b.state.toUpperCase());
+            state.setTextColor(getColor(b.paused ? R.color.brand_warn : R.color.brand_muted));
             model.setText(b.model.isEmpty() ? getString(R.string.dash) : b.model);
             layer.setText(b.total > 0 ? b.layerText : getString(R.string.dash));
-            remaining.setText(b.total > 0 ? b.remainingTime : getString(R.string.dash));
             // Procentu API neduoda - skaiciuojam patys is sluoksniu.
             ring.set(b.progress(), b.paused);
         } else {
-            state.setText(b.state.isEmpty() ? getString(R.string.idle) : b.state.toUpperCase());
+            didelis.setText(R.string.idle);
+            didelis.setTextColor(getColor(R.color.brand_muted));
+            state.setText(b.state.isEmpty() ? "" : b.state.toUpperCase());
             state.setTextColor(getColor(R.color.brand_muted));
             model.setText(R.string.dash);
             layer.setText(R.string.dash);
-            remaining.setText(R.string.dash);
             ring.set(-1f, false);
         }
 
         String r = b.resinLine();
         resin.setText(r.isEmpty() ? getString(R.string.dash) : r);
-        resin.setTextColor(b.vatLow ? getColor(R.color.brand_warn) : getColor(R.color.brand_muted));
+        resin.setTextColor(getColor(b.vatLow ? R.color.brand_warn : R.color.brand_muted));
     }
 
     // ------------------------------------------------------------ gestai

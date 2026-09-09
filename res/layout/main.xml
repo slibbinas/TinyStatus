@@ -34,7 +34,7 @@
             android:maxLines="1"
             android:ellipsize="end"
             android:textSize="11sp"
-            android:textColor="@color/brand_blue"
+            android:textColor="@color/brand_blue_light"
             android:visibility="gone" />
 
         <LinearLayout
@@ -47,51 +47,55 @@
             android:paddingBottom="20dp">
 
             <!--
-              paddingBottom pakelia VISA stulpeli 10 dp aukstyn (turinys
-              centruojamas likusioje vietoje): apacioje derva, sekundes ir
-              rodykle buvo per arti ziedo (V).
+              paddingBottom pakelia VISA stulpeli aukstyn (turinys centruojamas
+              likusioje vietoje): apacioje derva, sekundes ir rodykle buvo per
+              arti ziedo (V).
 
-              VIRSUJE - kiek liko laiko (V: "kas is to idomu stebeti - kiek
-              liko laiko, rezinos"). Cia dar ir praktinis dalykas: apvalaus
-              ekrano virsuje juosta siaura, o "39m 46s" trumpas ir telpa,
-              kai tuo tarpu modelio vardas ten atsidurdavo PO ziedu.
+              EILISKUMAS (V, 2026-09-10): svarbiausia yra KIEK LIKO LAIKO, tad
+              tai ir yra didysis skaicius viduryje. Sluoksniai nukeliavo i
+              virsu ir sumazejo - jie atsako i kita klausima ("kiek toli"), o
+              i ji jau atsako ziedas.
+
+              Sonine nauda: virsutineje eiluteje dabar guli trumpas "223 / 378",
+              o ne ilgas modelio vardas ar laikas - ten apvalus ekranas siauras,
+              ir ilgas tekstas atsidurdavo PO ziedu.
             -->
-            <TextView
-                android:id="@+id/remaining"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:maxLines="1"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="@color/brand_warn"
-                android:text="@string/dash" />
             <TextView
                 android:id="@+id/layer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:maxLines="1"
-                android:layout_marginTop="6dp"
-                android:textSize="23sp"
-                android:textStyle="bold"
-                android:textColor="@color/brand_blue"
+                android:textSize="13sp"
+                android:textColor="@color/brand_blue_light"
                 android:text="@string/dash" />
+            <TextView
+                android:id="@+id/didelis"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:maxLines="1"
+                android:layout_marginTop="1dp"
+                android:textSize="30sp"
+                android:autoSizeTextType="uniform"
+                android:autoSizeMinTextSize="17sp"
+                android:autoSizeMaxTextSize="30sp"
+                android:textStyle="bold"
+                android:textColor="@color/brand_text"
+                android:text="@string/connecting" />
             <TextView
                 android:id="@+id/state"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:maxLines="1"
-                android:textSize="18sp"
+                android:textSize="14sp"
                 android:autoSizeTextType="uniform"
-                android:autoSizeMinTextSize="12sp"
-                android:autoSizeMaxTextSize="18sp"
+                android:autoSizeMinTextSize="11sp"
+                android:autoSizeMaxTextSize="14sp"
                 android:textStyle="bold"
-                android:textColor="@color/brand_text"
-                android:text="@string/connecting" />
-            <!-- Modelio vardas - viduryje, kur ekranas platus; ilgas
-                 trumpinamas daugtaskiu. -->
+                android:textColor="@color/brand_muted"
+                android:text="" />
             <TextView
                 android:id="@+id/model"
                 android:layout_width="match_parent"
@@ -163,7 +167,7 @@
                 android:maxLines="1"
                 android:textSize="13sp"
                 android:textStyle="bold"
-                android:textColor="@color/brand_blue"
+                android:textColor="@color/brand_blue_light"
                 android:layout_marginBottom="4dp"
                 android:text="@string/t_background" />
 
@@ -204,7 +208,7 @@
                 android:maxLines="1"
                 android:textSize="13sp"
                 android:textStyle="bold"
-                android:textColor="@color/brand_blue"
+                android:textColor="@color/brand_blue_light"
                 android:layout_marginTop="20dp"
                 android:layout_marginBottom="4dp"
                 android:text="@string/t_alerts" />
@@ -224,7 +228,7 @@
                 android:maxLines="1"
                 android:textSize="13sp"
                 android:textStyle="bold"
-                android:textColor="@color/brand_blue"
+                android:textColor="@color/brand_blue_light"
                 android:layout_marginTop="20dp"
                 android:layout_marginBottom="4dp"
                 android:text="@string/t_printer" />
@@ -296,7 +300,7 @@
                 android:maxLines="1"
                 android:textSize="13sp"
                 android:textStyle="bold"
-                android:textColor="@color/brand_blue"
+                android:textColor="@color/brand_blue_light"
                 android:layout_marginBottom="10dp"
                 android:text="@string/t_ip" />
 

@@ -14,13 +14,17 @@
 -->
 <resources>
     <color name="brand_orange">#E8720C</color>
-    <color name="brand_orange_dim">#C95F06</color>
     <color name="brand_blue">#4DA3FF</color>
+    <!--
+      Ekrane naudojam BUTENT sviesesni atspalvi: firmine #4DA3FF ant
+      laikrodzio OLED atrodo tamsesne nei narsyklėje (V, 2026-09-10).
+      #84BCF8 yra tos pacios paletes nuorodu spalva, tad neisokam is
+      firmos ribu.
+    -->
     <color name="brand_blue_light">#84BCF8</color>
+    <color name="brand_blue_pale">#AFD5FB</color>
     <color name="brand_bg">#000000</color>
-    <color name="brand_line">#26262A</color>
     <color name="brand_button">#2E2E33</color>
-    <color name="brand_button_hover">#3C3C42</color>
     <color name="brand_text">#EEEEEE</color>
     <color name="brand_muted">#8A8A92</color>
     <color name="brand_faint">#55555C</color>
