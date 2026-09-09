@@ -21,74 +21,73 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <!-- Spausdintuvo vardas - tik kai ju keli. Guli ziedo viduje virsuje. -->
-        <TextView
-            android:id="@+id/printer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top|center_horizontal"
-            android:layout_marginTop="38dp"
-            android:paddingLeft="60dp"
-            android:paddingRight="60dp"
-            android:gravity="center"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:textSize="11sp"
-            android:textColor="@color/brand_blue_light"
-            android:visibility="gone" />
+        <!--
+          VISOS eilutes viename vertikaliame sraute ir su FIKSUOTOMIS
+          aukstinemis. Du dalykai is to seka, ir abu svarbus:
 
+          1. Persidengti eilutes negali fiziskai - nebera nei "prilipdytu prie
+             virsaus" elementu, nei besikeiciancio aukscio nuo teksto ilgio.
+          2. Kiekvienos eilutes vertikali padetis ZINOMA is anksto, tad
+             MainActivity.sutalpink() gali APSKAICIUOTI, koks plotis toje
+             aukstumoje telpa i apskritima, ir nustatyti sonines parastes.
+             Anksciau jos buvo parenkamos is akies, ir tekstas vis lisdavo po
+             ziedu (V, 2026-09-10: "sudelioti NE IS ATMINTIES, o paskaiciavus").
+
+          Eiliskumas (V): svarbiausia - kiek liko laiko, tad tai didysis
+          skaicius; sluoksniai smulkiai virsuje, nes i klausima "kiek toli"
+          jau atsako ziedas.
+        -->
         <LinearLayout
+            android:id="@+id/stulpelis"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:gravity="center"
-            android:paddingLeft="30dp"
-            android:paddingRight="30dp"
-            android:paddingBottom="20dp">
+            android:gravity="center">
 
-            <!--
-              paddingBottom pakelia VISA stulpeli aukstyn (turinys centruojamas
-              likusioje vietoje): apacioje derva, sekundes ir rodykle buvo per
-              arti ziedo (V).
-
-              EILISKUMAS (V, 2026-09-10): svarbiausia yra KIEK LIKO LAIKO, tad
-              tai ir yra didysis skaicius viduryje. Sluoksniai nukeliavo i
-              virsu ir sumazejo - jie atsako i kita klausima ("kiek toli"), o
-              i ji jau atsako ziedas.
-
-              Sonine nauda: virsutineje eiluteje dabar guli trumpas "223 / 378",
-              o ne ilgas modelio vardas ar laikas - ten apvalus ekranas siauras,
-              ir ilgas tekstas atsidurdavo PO ziedu.
-            -->
+            <!-- Spausdintuvo vardas - tik kai ju keli. -->
+            <TextView
+                android:id="@+id/printer"
+                android:layout_width="match_parent"
+                android:layout_height="15dp"
+                android:gravity="center"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:includeFontPadding="false"
+                android:textSize="11sp"
+                android:textColor="@color/brand_blue_light"
+                android:visibility="gone" />
             <TextView
                 android:id="@+id/layer"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="16dp"
                 android:gravity="center"
                 android:maxLines="1"
-                android:textSize="13sp"
+                android:ellipsize="end"
+                android:includeFontPadding="false"
+                android:textSize="12sp"
                 android:textColor="@color/brand_blue_light"
                 android:text="@string/dash" />
             <TextView
                 android:id="@+id/didelis"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="36dp"
                 android:gravity="center"
                 android:maxLines="1"
-                android:layout_marginTop="1dp"
-                android:textSize="30sp"
+                android:includeFontPadding="false"
+                android:textSize="26sp"
                 android:autoSizeTextType="uniform"
-                android:autoSizeMinTextSize="17sp"
-                android:autoSizeMaxTextSize="30sp"
+                android:autoSizeMinTextSize="15sp"
+                android:autoSizeMaxTextSize="26sp"
                 android:textStyle="bold"
                 android:textColor="@color/brand_text"
                 android:text="@string/connecting" />
             <TextView
                 android:id="@+id/state"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="19dp"
                 android:gravity="center"
                 android:maxLines="1"
+                android:includeFontPadding="false"
                 android:textSize="14sp"
                 android:autoSizeTextType="uniform"
                 android:autoSizeMinTextSize="11sp"
@@ -99,42 +98,42 @@
             <TextView
                 android:id="@+id/model"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="17dp"
                 android:gravity="center"
                 android:maxLines="1"
                 android:ellipsize="end"
-                android:layout_marginTop="4dp"
+                android:includeFontPadding="false"
                 android:textSize="12sp"
                 android:textColor="@color/brand_muted"
                 android:text="@string/dash" />
             <TextView
                 android:id="@+id/resin"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="17dp"
                 android:gravity="center"
                 android:maxLines="1"
-                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:includeFontPadding="false"
                 android:textSize="12sp"
                 android:textColor="@color/brand_muted"
                 android:text="@string/dash" />
             <TextView
                 android:id="@+id/hint"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="12dp"
                 android:gravity="center"
                 android:maxLines="1"
-                android:layout_marginTop="2dp"
-                android:textSize="10sp"
+                android:ellipsize="end"
+                android:includeFontPadding="false"
+                android:textSize="9sp"
                 android:textColor="@color/brand_faint"
                 android:text="" />
             <!-- Braukimas AUKSTYN atnaujina, ir tai turi MATYTIS: uzklausos
-                 metu rodykle sukasi ir pasviesėja (V). Kitaip nezinai, ar
-                 gestas suveike. -->
+                 metu rodykle sukasi ir pasviesėja (V). -->
             <ImageView
                 android:id="@+id/refresh"
                 android:layout_width="15dp"
-                android:layout_height="15dp"
-                android:layout_marginTop="3dp"
+                android:layout_height="16dp"
                 android:src="@drawable/ic_ts_refresh"
                 android:tint="@color/brand_faint"
                 android:contentDescription="@string/tap_hint" />
@@ -147,8 +146,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/brand_bg"
-        android:paddingLeft="34dp"
-        android:paddingRight="36dp"
+        android:paddingLeft="26dp"
+        android:paddingRight="28dp"
         android:scrollbars="none"
         android:visibility="gone">
 

@@ -26,8 +26,10 @@ public class RingView extends View {
     private static final float GAP_DEG = 1.6f;
     private static final int FILL = 0xFFE8720C;
     private static final int FILL_PAUSED = 0xFFFFB15F;
-    private static final float STROKE_DP = 9f;
-    private static final float INSET_DP = 5f;
+    /** Vieši: is ju MainActivity.sutalpink() skaiciuoja, kiek vietos lieka
+     *  tekstui. Du atskiri skaiciai butu du skirtingi ziedai. */
+    public static final float STROKE_DP = 9f;
+    public static final float INSET_DP = 5f;
 
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF box = new RectF();

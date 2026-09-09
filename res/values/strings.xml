@@ -34,8 +34,8 @@
     <string name="a_stop">Resin out</string>
     <string name="a_pause">Paused</string>
     <string name="t_printer">PRINTER</string>
-    <string name="s_auto">Auto search</string>
-    <string name="auto_hint">Off: enter up to 4 IPs</string>
+    <string name="s_auto">By name</string>
+    <string name="auto_hint">Finds tinymaker.lan. Off: up to 4 IPs</string>
     <string name="a_add">Add printer</string>
     <string name="a_close">Close</string>
 

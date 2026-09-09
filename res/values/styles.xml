@@ -33,13 +33,13 @@
         <item name="android:paddingBottom">10dp</item>
         <item name="android:paddingLeft">0dp</item>
         <item name="android:paddingRight">0dp</item>
-        <item name="android:background">@drawable/veiksmas</item>
+        <item name="android:background">@drawable/laukas</item>
         <item name="android:gravity">center</item>
         <item name="android:inputType">number</item>
         <item name="android:maxLength">3</item>
         <item name="android:maxLines">1</item>
         <item name="android:textSize">13sp</item>
-        <item name="android:textColor">@color/on_blue</item>
+        <item name="android:textColor">@color/brand_text</item>
     </style>
 
     <style name="IpTaskas">

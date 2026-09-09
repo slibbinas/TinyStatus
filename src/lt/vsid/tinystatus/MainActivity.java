@@ -58,6 +58,8 @@ public class MainActivity extends Activity {
     private static final long DEAD_MS = 45000;
     /** Po tiek fone grizus rodomas spausdinantis / pasirinktas spausdintuvas. */
     private static final long GRIZTAM_MS = 10000L;
+    /** Saugos tarpas tarp teksto ir ziedo, dp. */
+    private static final float SAUGA = 3f;
 
     private static final int[] IP_LAUKAI = {R.id.k_ip1, R.id.k_ip2, R.id.k_ip3, R.id.k_ip4};
     private static final int[] BG_MYGTUKAI = {R.id.bg_off, R.id.bg_const, R.id.bg_2, R.id.bg_5, R.id.bg_10};
@@ -67,6 +69,7 @@ public class MainActivity extends Activity {
     private TextView state, model, layer, didelis, resin, hint, printer;
     private RingView ring;
     private ImageView refresh;
+    private LinearLayout stulpelis;
     private View nust, ipl;
     private LinearLayout alerts, autoEilute, printers;
     private volatile boolean visible = false;
@@ -117,6 +120,7 @@ public class MainActivity extends Activity {
         printer = findViewById(R.id.printer);
         ring = findViewById(R.id.ring);
         refresh = findViewById(R.id.refresh);
+        stulpelis = findViewById(R.id.stulpelis);
         nust = findViewById(R.id.nust);
         ipl = findViewById(R.id.ipl);
         alerts = findViewById(R.id.alerts);
@@ -127,6 +131,13 @@ public class MainActivity extends Activity {
 
         gestaiSukurk();
         nustatymaiSukurk();
+        stulpelis.getViewTreeObserver().addOnGlobalLayoutListener(
+                new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        sutalpink();
+                    }
+                });
 
         // Pranesimams nuo Android 13 reikia leidimo. Atsisakymas reiskia tik
         // tiek, kad pranesimu nebus - programele veikia toliau.
@@ -426,6 +437,48 @@ public class MainActivity extends Activity {
         String r = b.resinLine();
         resin.setText(r.isEmpty() ? getString(R.string.dash) : r);
         resin.setTextColor(getColor(b.vatLow ? R.color.brand_warn : R.color.brand_muted));
+    }
+
+    /**
+     * Sonines eiluciu parastes APSKAICIUOJAMOS pagal apskritima, o ne
+     * parenkamos.
+     *
+     * Ekranas apvalus: kuo eilute toliau nuo centro, tuo maziau vietos jos
+     * galams. Tekstas, kuris viduryje telptu laisvai, virsutineje eiluteje
+     * atsiduria PO ziedu - taip ir buvo su modelio vardu, laiku ir sluoksniais
+     * (V, 2026-09-10).
+     *
+     * Kiekvienai eilutei imam TOLIAUSIA nuo centro esanti jos krasta (virsutinei
+     * - virsu, apatinei - apacia), is apskritimo lygties randam, koks pusplotis
+     * toje aukstumoje telpa, ir likusi ploti atiduodam parastems. R - ziedo
+     * VIDINIS spindulys minus saugos tarpas, tad tekstas ziedo neliecia.
+     *
+     * Aukstis nuo parasciu nesikeicia (eilutes fiksuoto auksčio, vienaeilės),
+     * tad pozicijos po perskaiciavimo lieka tos pacios - kilpos nera.
+     */
+    private void sutalpink() {
+        int p = stulpelis.getWidth();
+        if (p == 0) {
+            return;
+        }
+        float t = getResources().getDisplayMetrics().density;
+        float cy = stulpelis.getHeight() / 2f;
+        // Ziedo vidinis krastas: RingView piesia INSET_DP + STROKE_DP nuo krasto.
+        float r = p / 2f - (RingView.INSET_DP + RingView.STROKE_DP) * t - SAUGA * t;
+        for (int i = 0; i < stulpelis.getChildCount(); i++) {
+            View v = stulpelis.getChildAt(i);
+            // Tik tekstui: piktograma ir taip siaura ir centruota, o parastes
+            // ja nustumdavo i sona (ImageView jas skaiciuoja kitaip).
+            if (!(v instanceof TextView) || v.getVisibility() != View.VISIBLE) {
+                continue;
+            }
+            float dy = Math.max(Math.abs(v.getTop() - cy), Math.abs(v.getBottom() - cy));
+            float pusplotis = (dy >= r) ? 0 : (float) Math.sqrt(r * r - dy * dy);
+            int pad = Math.max(0, Math.round(p / 2f - pusplotis));
+            if (Math.abs(pad - v.getPaddingLeft()) > 1) {
+                v.setPadding(pad, v.getPaddingTop(), pad, v.getPaddingBottom());
+            }
+        }
     }
 
     // ------------------------------------------------------------ gestai
