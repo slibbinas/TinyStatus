@@ -15,6 +15,8 @@ Kadru saltiniai (vardai turi sutapti su tuo, kas nufotografuota):
     g4_background   nustatymai: BACKGROUND intervalai
     g6_alerts       nustatymai: ALERTS jungikliai
     g2_pr2          antras spausdintuvas, OFFLINE
+    g11_done        spausdinimas baigtas (DONE) - programeles isvesta busena,
+                    nes API apie pabaiga nepraneša
 
 Paleidimas:  python tools/tinystatus/dokumentas.py
 """
@@ -76,7 +78,9 @@ def gif(kelias, dydis=300, spalvos=96):
         ("g4_background", True, 1700),   # fono intervalas
         ("g6_alerts", True, 1700),       # kurie ivykiai zadina
         ("g2_pr2", False, 1700),         # antras spausdintuvas tyli
-        ("g1_main", False, 2100),        # ir atgal
+        # Pabaiga. Sitos busenos API neturi - ja isveda pati programele is
+        # dvieju gretimu apklausu skirtumo, todel ji ir verta parodyti.
+        ("g11_done", False, 2400),
     ]
     buves = None
     for vardas, vert, ms in eiga:
