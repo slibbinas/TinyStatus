@@ -366,46 +366,61 @@ public final class TsSaltinis {
      * auditas 2026-09-09). Jei spausdintuva pasiekiam per telefona, fone
      * radijo kelti nereikia isvis.
      */
+    /**
+     * Zondas: per KURIUOS tinklus spausdintuvas pasiekiamas.
+     *
+     * Klausiam kiekvieno laikrodzio tinklo ATSKIRAI (cm.getAllNetworks), o ne
+     * tik numatytojo. Priezastis praktine: belaidis derinimas pats laiko Wi-Fi
+     * ijungta, tad numatytasis tinklas tikrinimo metu VISADA butu Wi-Fi, ir
+     * klausimas "ar pasiekiam per telefona" liktu neatsakytas. Jungiant per
+     * konkretu Network objekta tai nebesvarbu.
+     *
+     * Kodel tai svarbu: jei telefonas pats yra namu tinkle, Wear Bluetooth
+     * tunelis atidaro lizda TELEFONE, ir vietinis adresas pasiekiamas
+     * NEKELIANT laikrodzio Wi-Fi radijo - o butent tas kelimas (3-6 s radijo)
+     * ir yra brangiausia dalis (energijos auditas 2026-09-09).
+     */
     public static boolean zonduok(Context c) {
         ConnectivityManager cm =
                 (ConnectivityManager) c.getSystemService(Context.CONNECTIVITY_SERVICE);
-        Network n = numatytasis(c);
-        String transportai = "nera";
-        if (cm != null && n != null) {
-            NetworkCapabilities nc = cm.getNetworkCapabilities(n);
-            if (nc != null) {
-                transportai = (nc.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ? "WIFI " : "")
-                        + (nc.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH) ? "BLUETOOTH " : "")
-                        + (nc.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ? "CELLULAR " : "");
-            }
+        if (cm == null) {
+            return false;
         }
-        boolean wifi = transportai.contains("WIFI");
-        boolean pavyko = false;
-        int kiek = skaicius(c);
-        for (int i = 0; i < kiek && !pavyko; i++) {
-            for (String host : hosts(c, i)) {
+        boolean btVeikia = false;
+        Network numatytasis = numatytasis(c);
+        for (Network n : cm.getAllNetworks()) {
+            NetworkCapabilities nc = cm.getNetworkCapabilities(n);
+            if (nc == null) {
+                continue;
+            }
+            String t = (nc.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ? "WIFI " : "")
+                    + (nc.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH) ? "BLUETOOTH " : "")
+                    + (nc.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ? "CELLULAR " : "");
+            t = t.trim().isEmpty() ? "kitas" : t.trim();
+            boolean sis = n.equals(numatytasis);
+            String kur = null;
+            String klaida = null;
+            for (String host : hosts(c, 0)) {
                 try {
-                    String body = get(n, "http://" + host + "/api/status");
-                    pavyko = TsBusena.parse(body, 0) != null;
-                    Log.i(TAG, "zondas: " + host + " per [" + transportai.trim() + "] -> "
-                            + (pavyko ? "atsake" : "ne status"));
-                    if (pavyko) {
+                    if (TsBusena.parse(get(n, "http://" + host + "/api/status"), 0) != null) {
+                        kur = host;
                         break;
                     }
+                    klaida = "ne status";
                 } catch (Exception e) {
-                    Log.i(TAG, "zondas: " + host + " per [" + transportai.trim() + "] -> " + e);
+                    klaida = String.valueOf(e);
                 }
             }
+            Log.i(TAG, "zondas: [" + t + "]" + (sis ? " (numatytasis)" : "") + " -> "
+                    + (kur != null ? "ATSAKE per " + kur : "ne (" + klaida + ")"));
+            if (kur != null && nc.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH)) {
+                btVeikia = true;
+            }
         }
-        // Jei numatytasis jau Wi-Fi, zondas nieko neirodo apie telefona -
-        // vėliavos neliečiam.
-        if (!wifi) {
-            prefs(c).edit().putBoolean("bt", pavyko).putLong("btTs", System.currentTimeMillis()).apply();
-            Log.i(TAG, "zondas: per telefona " + (pavyko ? "VEIKIA" : "neveikia"));
-        } else {
-            Log.i(TAG, "zondas: numatytasis jau Wi-Fi, apie telefona nieko nesakom");
-        }
-        return pavyko;
+        prefs(c).edit().putBoolean("bt", btVeikia)
+                .putLong("btTs", System.currentTimeMillis()).apply();
+        Log.i(TAG, "zondas: per telefona " + (btVeikia ? "VEIKIA" : "neveikia"));
+        return btVeikia;
     }
 
     /**
