@@ -776,11 +776,18 @@ public class MainActivity extends Activity {
     private void pieskSarasa() {
         printers.removeAllViews();
         boolean auto = TsSaltinis.auto(this);
+        TextView paaiskinimas = findViewById(R.id.auto_hint);
         // Prierasas sako, ka jungiklis DARO, o ne kartoja jo varda.
-        ((TextView) findViewById(R.id.auto_hint)).setText(auto ? R.string.auto_on : R.string.auto_off);
+        paaiskinimas.setText(auto ? R.string.auto_on : R.string.auto_off);
+        paaiskinimas.setVisibility(View.VISIBLE);
         if (auto) {
             String ip = TsSaltinis.prefs(this).getString("pr.0.seen", "");
             String host = TsSaltinis.prefs(this).getString("pr.0.host", "");
+            if (!host.isEmpty()) {
+                // Radome - tada "Finds tinymaker.lan" tik kartoja tai, ka
+                // pasako pati radiniо eilute po juo.
+                paaiskinimas.setVisibility(View.GONE);
+            }
             if (host.isEmpty()) {
                 // Tuscias rodinys vis tiek uzima vietos ir palieka tarpa iki
                 // kito skyrelio (V pastebejo 2026-09-10) - tad slepiam visa.
