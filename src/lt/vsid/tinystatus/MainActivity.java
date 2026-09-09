@@ -55,7 +55,16 @@ public class MainActivity extends Activity {
      *  dashboard'as daro ta pati: spausdintuvas neatsako reguliariai - ji uzima
      *  ikelimas, SD darbai, perziuros generavimas - ir tai NORMALU. */
     private static final long STALE_MS = 12000;
-    private static final long DEAD_MS = 45000;
+    /**
+     * Kada pasakom "OFFLINE", o ne "NOT RESPONDING".
+     *
+     * Pusantros minutes, o ne 45 s: spausdintuva uzima ikelimai, SD darbai ir
+     * perziuru generavimas, ir tai NORMALU, ne gedimas (taip elgiasi ir jo
+     * paties pultas - jis apie "offline" nekalba isvis, tik pazymi, kad
+     * duomenys paseno). Iki tol ekrane lieka paskutines reiksmes su
+     * prierasu, kiek joms metu.
+     */
+    private static final long DEAD_MS = 90000;
     /** Po tiek fone grizus rodomas spausdinantis / pasirinktas spausdintuvas. */
     private static final long GRIZTAM_MS = 10000L;
     /** Saugos tarpas tarp teksto ir ziedo, dp. */
@@ -278,10 +287,12 @@ public class MainActivity extends Activity {
         if (TsSaltinis.skaicius(this) == 0) {
             return;
         }
-        if (rankinis) {
+        boolean pasene = TsSaltinis.atmintinesLaikas(this, n) > 0
+                && System.currentTimeMillis() - TsSaltinis.atmintinesLaikas(this, n) > STALE_MS;
+        if (rankinis || pasene) {
             sukis(true);
         }
-        final boolean r = rankinis;
+        final boolean r = rankinis || pasene;
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -339,6 +350,12 @@ public class MainActivity extends Activity {
         }
         long s = (System.currentTimeMillis() - ts) / 1000;
         String kada = (s < 60) ? s + "s" : (s < 3600 ? (s / 60) + "m" : (s / 3600) + "h");
+        if (s * 1000 > STALE_MS) {
+            hint.setText(getString(R.string.no_answer, s));
+            hint.setTextColor(getColor(R.color.brand_warn));
+            return;
+        }
+        hint.setTextColor(getColor(R.color.brand_faint));
         if (TsSargas.veikia()) {
             int min = TsSargas.intervalas(this);
             hint.setText(getString(R.string.age_bg, kada, min == 1 ? "30s" : min + "min"));
@@ -418,8 +435,12 @@ public class MainActivity extends Activity {
         } else if (b.busy) {
             didelis.setText(b.remainingTime.isEmpty() ? getString(R.string.dash) : b.remainingTime);
             didelis.setTextColor(getColor(R.color.brand_text));
-            state.setText(b.state.isEmpty() ? "" : b.state.toUpperCase());
-            state.setTextColor(getColor(b.paused ? R.color.brand_warn : R.color.brand_latte));
+            // Tylintis spausdintuvas dazniausiai yra UZIMTAS, ne dinges, tad
+            // reiksmiu neslepiam - tik pasakom, kad jos senos.
+            boolean tyli = age > STALE_MS;
+            state.setText(tyli ? getString(R.string.busy_maybe)
+                    : (b.state.isEmpty() ? "" : b.state.toUpperCase()));
+            state.setTextColor(getColor(tyli || b.paused ? R.color.brand_warn : R.color.brand_latte));
             model.setText(b.model.isEmpty() ? getString(R.string.dash) : b.model);
             layer.setText(b.total > 0 ? b.layerText : getString(R.string.dash));
             // Procentu API neduoda - skaiciuojam patys is sluoksniu.
@@ -495,16 +516,27 @@ public class MainActivity extends Activity {
                     return false;
                 }
                 if (Math.abs(vy) > Math.abs(vx)) {
-                    // AUKSTYN - atnaujinti, ZEMYN - iseiti (V). Pagrindinis
-                    // ekranas telpa, tad vertikalus judesys jame laisvas.
+                    // ZEMYN - atnaujinti, AUKSTYN - iseiti.
+                    //
+                    // Butent tokia tvarka, o ne atvirksciai, del dvieju dalyku.
+                    // Pirma, "patrauk zemyn - atnaujinsi" yra visuotine
+                    // konvencija (pastas, naujienos, socialiniai tinklai) -
+                    // ranka ja daro negalvodama, o braukimas aukstyn
+                    // atnaujinimo nereiskia niekur. Antra, braukimas aukstyn
+                    // uzdaro ir ValloxWatch: dvi tos pacios rankos programeles
+                    // negali to paties judesio suprasti priesingai.
+                    //
+                    // Braukti reikia nuo ekrano VIDURIO: nuo pat virsaus
+                    // sistema patraukia savo nustatymu uzuolaida ir gesto mes
+                    // nebematom. Todel bakstelejimas irgi atnaujina.
                     float dy = b.getY() - a.getY();
-                    if (dy < -60) {
-                        Log.i(TAG, "braukimas aukstyn - atnaujinam");
+                    if (dy > 60) {
+                        Log.i(TAG, "braukimas zemyn - atnaujinam");
                         fetch(true);
                         return true;
                     }
-                    if (dy > 60) {
-                        Log.i(TAG, "braukimas zemyn - uzdarom");
+                    if (dy < -60) {
+                        Log.i(TAG, "braukimas aukstyn - uzdarom");
                         finish();
                         return true;
                     }

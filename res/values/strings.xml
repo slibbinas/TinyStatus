@@ -10,6 +10,9 @@
     <string name="canceled">CANCELED</string>
     <string name="stopped">STOPPED</string>
     <string name="idle">IDLE</string>
+    <string name="busy_maybe">NOT RESPONDING</string>
+    <!-- %1$d - sekundes nuo paskutinio atsakymo -->
+    <string name="no_answer">no answer %1$ds</string>
     <string name="layers">%1$d layers</string>
     <string name="finished_ago">finished %1$s ago</string>
     <string name="ended_ago">ended %1$s ago</string>

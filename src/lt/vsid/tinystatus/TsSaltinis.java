@@ -155,25 +155,41 @@ public final class TsSaltinis {
         return geriausias >= 0 ? geriausias : pasirinktas(c);
     }
 
-    /** Vardai, kuriuos bandyti: zinomas veikiantis pirmas, po jo likusieji. */
+    /** Ar tai vienas is musu vardu kandidatu. */
+    private static boolean arKandidatas(String h) {
+        for (String x : HOSTS) {
+            if (x.equals(h)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Vardai, kuriuos bandyti: zinomas veikiantis pirmas, po jo likusieji.
+     *
+     * Sarasas sudaromas i ArrayList, o ne i fiksuoto ilgio masyva. 2026-09-10
+     * cia luzo programele (ArrayIndexOutOfBoundsException: length=3; index=3):
+     * "veikianciu vardu" buvo irasytas IP, jis nesutapo nė su vienu HOSTS
+     * elementu, ir i triju vietu masyva bandyta sudeti keturis. Dabar
+     * netinkamas irasas tiesiog praleidziamas, o vietos visada uztenka.
+     */
     static String[] hosts(Context c, int n) {
         if (!auto(c)) {
             String ip = ip(c, n);
             return ip.isEmpty() ? new String[0] : new String[]{ip};
         }
         String good = prefs(c).getString("pr.0.host", null);
-        if (good == null) {
-            return HOSTS;
+        java.util.ArrayList<String> eile = new java.util.ArrayList<String>(HOSTS.length);
+        if (good != null && arKandidatas(good)) {
+            eile.add(good);
         }
-        String[] order = new String[HOSTS.length];
-        order[0] = good;
-        int i = 1;
         for (String h : HOSTS) {
             if (!h.equals(good)) {
-                order[i++] = h;
+                eile.add(h);
             }
         }
-        return order;
+        return eile.toArray(new String[0]);
     }
 
     // ------------------------------------------------------------ skaitymas
@@ -222,7 +238,12 @@ public final class TsSaltinis {
                 SharedPreferences.Editor e = p.edit()
                         .putString("c." + n + ".raw", body)
                         .putLong("c." + n + ".ts", now);
-                if (auto(c) && !host.equals(p.getString("pr.0.host", null))) {
+                // Isimenam TIK varda is kandidatu saraso. Be sios salygos
+                // ivykdavo lenktynes: perjungus "By name" i ON dar nebaigtas
+                // ankstesnis (rankinio rezimo) skaitymas irasydavo IP kaip
+                // "veikianti varda" - is to ir kilo lūžis hosts() viduje.
+                if (auto(c) && arKandidatas(host)
+                        && !host.equals(p.getString("pr.0.host", null))) {
                     Log.i(TAG, "vardas veikia: " + host);
                     e.putString("pr.0.host", host);
                 }

@@ -53,7 +53,7 @@ print-finished and resin alerts will have nowhere to go.
 
 | Where | What |
 |---|---|
-| Big number | **Time left.** After a print: `DONE`, `CANCELED` or `STOPPED`. Idle: `IDLE`. No answer for 45 s: `OFFLINE` |
+| Big number | **Time left.** After a print: `DONE`, `CANCELED` or `STOPPED`. Idle: `IDLE`. No answer for 90 s: `OFFLINE` |
 | Above it | Layer `232 / 378` |
 | Below | Printer state, model name, resin left in the vat |
 | Bottom | Seconds since the printer last answered, and the background interval when the watcher is running |
@@ -168,7 +168,7 @@ notifications.
    the IP
 
 A short silence is not a failure: the printer gets busy with uploads and SD
-work, so the app keeps showing the last values for 45 seconds — the seconds
+work, so the app keeps showing the last values for 90 seconds, saying NOT RESPONDING after 12 s — the seconds
 counter at the bottom tells you how old they are — and only then says
 `OFFLINE`.
 
