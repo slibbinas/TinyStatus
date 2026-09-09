@@ -1,4 +1,4 @@
-# TinyStatus — your TinyMaker printer on your wrist
+# TinyStatus - your TinyMaker printer on your wrist
 
 A Wear OS app that shows what your **TinyMakerWiFi** printer is doing: how much
 time is left, which layer, how much resin is still in the vat, and a progress
@@ -12,7 +12,7 @@ It is not on Google Play, so it is installed by **sideloading**.
 
 - A Wear OS 4+ watch (developed and tested on Galaxy Watch 8)
 - **TinyMakerWiFi firmware 0.11.0 or newer.** Older builds (from 0.8.4) work
-  too, except for the low-resin warning — the API had no `vatLow` back then
+  too, except for the low-resin warning - the API had no `vatLow` back then
 - Watch and printer on the **same Wi-Fi network**
 
 ## Installing
@@ -24,16 +24,16 @@ It is not on Google Play, so it is installed by **sideloading**.
 2. In there, turn on **`ADB debugging`** and **`Wireless debugging`**
 3. **On your phone**, install an app that speaks `adb` over Wi-Fi
    (for example *Wear Installer 2*)
-4. On the watch open `Wireless debugging → Pair new device` — it shows a code
+4. On the watch open `Wireless debugging → Pair new device` - it shows a code
 5. Pair from the phone using that code, then pick the downloaded
    `tinystatus.apk`
-6. **Turn both debugging switches off when you are done** — otherwise the watch
+6. **Turn both debugging switches off when you are done** - otherwise the watch
    keeps a permanent "Debugging enabled" notification and buzzes every time the
    connection drops
 
 ### Option B: from a computer
 
-You need `adb` (Android SDK platform-tools). Steps 1–2 on the watch are the
+You need `adb` (Android SDK platform-tools). Steps 1-2 on the watch are the
 same.
 
 ```bash
@@ -42,7 +42,7 @@ adb connect <watch-ip>:<port>
 adb install -r tinystatus.apk
 ```
 
-Use **`install -r`** when updating — it upgrades in place.
+Use **`install -r`** when updating - it upgrades in place.
 
 The first time you open the app it asks to allow notifications. Say yes, or the
 print-finished and resin alerts will have nowhere to go.
@@ -65,7 +65,7 @@ Progress is computed from the layers: the API reports no percentage.
 
 | Gesture | What happens |
 |---|---|
-| **Swipe down** | Refresh now — the arrow at the bottom spins while it asks |
+| **Swipe down** | Refresh now - the arrow at the bottom spins while it asks |
 | **Swipe up** | Leave the app |
 | **Tap** | Refresh (same as swipe down) |
 | **Long press** | Settings |
@@ -80,14 +80,14 @@ system pulls its own quick-settings shade instead.
 
 ### Settings
 
-**BACKGROUND** — how often the app checks the printer **while it is closed**:
+**BACKGROUND** - how often the app checks the printer **while it is closed**:
 `Off`, `Every 30 s`, `2`, `5` or `10 min`. With the app open on screen it always
 refreshes every 5 seconds regardless of this setting.
 
 The watcher **only runs while a print is running**, because the printer
 announces nothing by itself and there is nothing to watch otherwise:
 
-- it **starts** when you close the app while a print is in progress — so the
+- it **starts** when you close the app while a print is in progress - so the
   habit is: start the print, open TinyStatus once, put your wrist down;
 - it **stops** on its own 20 minutes after the print ends, after 30 minutes
   without an answer (it tells you), or when the battery drops below 15 %;
@@ -97,7 +97,7 @@ Accuracy: exact while the watch is on your wrist. Left on a table the watch
 enters deep doze, and Android stretches the interval to roughly 10 minutes no
 matter what you picked. That is a platform limit, not a setting.
 
-**ALERTS** — which events buzz your wrist. They mirror what the printer's own
+**ALERTS** - which events buzz your wrist. They mirror what the printer's own
 Telegram/Discord notifications send:
 
 | Switch | Fires when | Default |
@@ -107,7 +107,7 @@ Telegram/Discord notifications send:
 | Resin out | Resin hits the stop level (default 2 ml) or the printer pauses to refill | on |
 | Paused | You pause the print by hand | off |
 
-Each event is announced **once**, when it happens — not repeated every poll.
+Each event is announced **once**, when it happens - not repeated every poll.
 The thresholds come from the printer itself (`/api/config`), so changing them
 on the printer changes them here too.
 
@@ -115,14 +115,14 @@ One honest limitation: if a print is canceled between two polls and the app
 never sees the cancel itself, it reports `Print stopped … not finished` rather
 than `canceled`. It says what it knows, not what it guesses.
 
-**PRINTER** — `By name` on (the default) finds a single printer by name
+**PRINTER** - `By name` on (the default) finds a single printer by name
 (`tinymaker.lan`). Turn it off to enter **up to four printers by IP**: tap
 `Add printer`, type the address, `Save`. Tap a printer in the list to edit or
 `Remove` it.
 
 Why IPs for multiple printers: every TinyMaker answers to the same name, so the
 name cannot tell two of them apart. **Reserve the addresses in your router**
-(DHCP reservation) — otherwise a printer can get a new address and the app will
+(DHCP reservation) - otherwise a printer can get a new address and the app will
 just show `OFFLINE`.
 
 ### On your watch face
@@ -130,16 +130,16 @@ just show `OFFLINE`.
 The app publishes four complication data sources. In your watch face's
 complication picker they appear as:
 
-- **TinyMaker progress ring** — a ring plus the percentage (needs a watch face
+- **TinyMaker progress ring** - a ring plus the percentage (needs a watch face
   slot that accepts `RANGED_VALUE`)
-- **TinyMaker progress %** — `62%`
-- **TinyMaker time left** — `1h20`
-- **TinyMaker resin left** — `7.4ml`
+- **TinyMaker progress %** - `62%`
+- **TinyMaker time left** - `1h20`
+- **TinyMaker resin left** - `7.4ml`
 
 They show `DONE` for 12 hours after a print and `IDLE` when nothing is running.
 Tapping one opens the app.
 
-The complications **never fetch anything themselves** — they answer from the
+The complications **never fetch anything themselves** - they answer from the
 last value the app or the background watcher fetched. That is deliberate: the
 system asks providers every time you raise your wrist, and fetching there would
 turn every wrist-raise into a Wi-Fi wake-up.
@@ -150,7 +150,7 @@ Closed and with `BACKGROUND` off, the app does nothing at all. With the watcher
 running it wakes for a fraction of a second per interval, holds the CPU only
 while the request is in flight, and prefers a Wi-Fi connection that is already
 up over waking the radio. Waking the Wi-Fi radio is the expensive part
-(3–6 seconds of radio), not keeping it associated.
+(3-6 seconds of radio), not keeping it associated.
 
 ## Privacy
 
@@ -185,8 +185,8 @@ bash tools/tinystatus/build.sh
 ```
 
 Needs a JDK and Android build-tools; **no Gradle**. On the first run it
-downloads one 700 KB library (`com.google.android.support:wearable:2.9.0`) —
-the complication provider base class lives there — extracts `classes.jar` and
+downloads one 700 KB library (`com.google.android.support:wearable:2.9.0`) -
+the complication provider base class lives there - extracts `classes.jar` and
 keeps it in `libs/`, which is not in git.
 
 The version comes from the git commit count, so `versionCode` always increases;
