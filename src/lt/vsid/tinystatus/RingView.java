@@ -17,6 +17,10 @@ import android.view.View;
 public class RingView extends View {
 
     private static final int TRACK = 0xFF1C1C1E;
+    /** Tarpeliai kas 10 % - piesiami fono spalva, tad ziedas atrodo dalytas. */
+    private static final int GAP = 0xFF000000;
+    private static final int DALYS = 10;
+    private static final float GAP_DEG = 1.6f;
     private static final int FILL = 0xFF2FD4B5;
     private static final int FILL_PAUSED = 0xFFF5C542;
     private static final float STROKE_DP = 9f;
@@ -59,5 +63,20 @@ public class RingView extends View {
             // -90 laipsniu: pradedam nuo virsaus, kaip laikrodyje
             canvas.drawArc(box, -90f, 360f * Math.min(progress, 1f), false, paint);
         }
+
+        // Bruksniukai kas 10 % (V): be ju is ziedo matai tik "maždaug puse", o
+        // su jais - "septyni is desimties". Piesiam PO progreso ir fono spalva,
+        // tad tie patys tarpeliai dalija ir takeli, ir uzpildyta dali.
+        //
+        // Nulinio (virsutinio) NEPIESIAM: ten ziedo pradzia ir pabaiga, ir
+        // tarpelis tik praplatintu ir taip esancia siule.
+        paint.setColor(GAP);
+        Paint.Cap senas = paint.getStrokeCap();
+        paint.setStrokeCap(Paint.Cap.BUTT);
+        for (int i = 1; i < DALYS; i++) {
+            canvas.drawArc(box, -90f + i * (360f / DALYS) - GAP_DEG / 2f,
+                    GAP_DEG, false, paint);
+        }
+        paint.setStrokeCap(senas);
     }
 }

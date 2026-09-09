@@ -43,17 +43,28 @@
             android:orientation="vertical"
             android:gravity="center"
             android:paddingLeft="30dp"
-            android:paddingRight="30dp">
+            android:paddingRight="30dp"
+            android:paddingBottom="20dp">
 
+            <!--
+              paddingBottom pakelia VISA stulpeli 10 dp aukstyn (turinys
+              centruojamas likusioje vietoje): apacioje derva, sekundes ir
+              rodykle buvo per arti ziedo (V).
+
+              VIRSUJE - kiek liko laiko (V: "kas is to idomu stebeti - kiek
+              liko laiko, rezinos"). Cia dar ir praktinis dalykas: apvalaus
+              ekrano virsuje juosta siaura, o "39m 46s" trumpas ir telpa,
+              kai tuo tarpu modelio vardas ten atsidurdavo PO ziedu.
+            -->
             <TextView
-                android:id="@+id/model"
+                android:id="@+id/remaining"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:maxLines="1"
-                android:ellipsize="end"
-                android:textSize="12sp"
-                android:textColor="#8A8A8E"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#F5C542"
                 android:text="@string/dash" />
             <TextView
                 android:id="@+id/layer"
@@ -61,8 +72,8 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:maxLines="1"
-                android:layout_marginTop="8dp"
-                android:textSize="26sp"
+                android:layout_marginTop="6dp"
+                android:textSize="23sp"
                 android:textStyle="bold"
                 android:textColor="#4D9DF7"
                 android:text="@string/dash" />
@@ -79,14 +90,18 @@
                 android:textStyle="bold"
                 android:textColor="#2FD4B5"
                 android:text="@string/connecting" />
+            <!-- Modelio vardas - viduryje, kur ekranas platus; ilgas
+                 trumpinamas daugtaskiu. -->
             <TextView
-                android:id="@+id/remaining"
+                android:id="@+id/model"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:maxLines="1"
-                android:textSize="15sp"
-                android:textColor="#F5C542"
+                android:ellipsize="end"
+                android:layout_marginTop="4dp"
+                android:textSize="12sp"
+                android:textColor="#8A8A8E"
                 android:text="@string/dash" />
             <TextView
                 android:id="@+id/resin"
@@ -94,27 +109,28 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:maxLines="1"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="2dp"
                 android:textSize="12sp"
                 android:textColor="#8A8A8E"
                 android:text="@string/dash" />
-            <!-- Prierasas TIK busenai ("no answer 20s", "watching"). Kad
-                 bakstelejimas atnaujina, pasako ikona apacioje, ne tekstas (V). -->
             <TextView
                 android:id="@+id/hint"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:maxLines="1"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="2dp"
                 android:textSize="10sp"
                 android:textColor="#4A4A50"
                 android:text="" />
+            <!-- Braukimas AUKSTYN atnaujina, ir tai turi MATYTIS: uzklausos
+                 metu rodykle sukasi ir pasviesėja (V). Kitaip nezinai, ar
+                 gestas suveike. -->
             <ImageView
                 android:id="@+id/refresh"
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:layout_marginTop="4dp"
+                android:layout_width="15dp"
+                android:layout_height="15dp"
+                android:layout_marginTop="3dp"
                 android:src="@drawable/ic_ts_refresh"
                 android:tint="#4A4A50"
                 android:contentDescription="@string/tap_hint" />

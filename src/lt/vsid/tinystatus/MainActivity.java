@@ -22,9 +22,13 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.RotateAnimation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -62,6 +66,7 @@ public class MainActivity extends Activity {
 
     private TextView state, model, layer, remaining, resin, hint, printer;
     private RingView ring;
+    private ImageView refresh;
     private View nust, ipl;
     private LinearLayout alerts, autoEilute, printers;
     private volatile boolean visible = false;
@@ -111,6 +116,7 @@ public class MainActivity extends Activity {
         hint = findViewById(R.id.hint);
         printer = findViewById(R.id.printer);
         ring = findViewById(R.id.ring);
+        refresh = findViewById(R.id.refresh);
         nust = findViewById(R.id.nust);
         ipl = findViewById(R.id.ipl);
         alerts = findViewById(R.id.alerts);
@@ -245,12 +251,26 @@ public class MainActivity extends Activity {
 
     // ------------------------------------------------------------ skaitymas
 
-    /** Uzklausa atskiroje gijoje - tinklas pagrindineje gijoje neleidziamas. */
     private void fetch() {
+        fetch(false);
+    }
+
+    /**
+     * Uzklausa atskiroje gijoje - tinklas pagrindineje gijoje neleidziamas.
+     *
+     * rankinis=true (braukimas aukstyn arba bakstelejimas) suka rodykle, kad
+     * matytusi, jog gestas suveike. Automatine kilpa kas 5 s NESUKA: nuolat
+     * besisukantis zenklas nustotu ka nors reikses.
+     */
+    private void fetch(boolean rankinis) {
         final int n = rodomas;
         if (TsSaltinis.skaicius(this) == 0) {
             return;
         }
+        if (rankinis) {
+            sukis(true);
+        }
+        final boolean r = rankinis;
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -266,6 +286,9 @@ public class MainActivity extends Activity {
                 ui.post(new Runnable() {
                     @Override
                     public void run() {
+                        if (r) {
+                            sukis(false);
+                        }
                         if (visible) {
                             show();
                         }
@@ -273,6 +296,22 @@ public class MainActivity extends Activity {
                 });
             }
         }).start();
+    }
+
+    /** Rodykle sukasi, kol vyksta rankinis atnaujinimas. */
+    private void sukis(boolean ar) {
+        if (!ar) {
+            refresh.clearAnimation();
+            refresh.setColorFilter(0xFF4A4A50);
+            return;
+        }
+        refresh.setColorFilter(0xFF2FD4B5);
+        RotateAnimation a = new RotateAnimation(0, 360,
+                Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+        a.setDuration(650);
+        a.setRepeatCount(Animation.INFINITE);
+        a.setInterpolator(new LinearInterpolator());
+        refresh.startAnimation(a);
     }
 
     /**
@@ -393,10 +432,16 @@ public class MainActivity extends Activity {
                     return false;
                 }
                 if (Math.abs(vy) > Math.abs(vx)) {
-                    // Braukimas AUKSTYN uzdaro programele (V). Pagrindinis
-                    // ekranas telpa, vertikalus judesys jame laisvas.
-                    if (b.getY() - a.getY() < -60) {
-                        Log.i(TAG, "braukimas aukstyn - uzdarom");
+                    // AUKSTYN - atnaujinti, ZEMYN - iseiti (V). Pagrindinis
+                    // ekranas telpa, tad vertikalus judesys jame laisvas.
+                    float dy = b.getY() - a.getY();
+                    if (dy < -60) {
+                        Log.i(TAG, "braukimas aukstyn - atnaujinam");
+                        fetch(true);
+                        return true;
+                    }
+                    if (dy > 60) {
+                        Log.i(TAG, "braukimas zemyn - uzdarom");
                         finish();
                         return true;
                     }
@@ -421,7 +466,7 @@ public class MainActivity extends Activity {
                 if (TsSaltinis.skaicius(MainActivity.this) == 0) {
                     rodykNustatymus(true);
                 } else {
-                    fetch();
+                    fetch(true);
                 }
                 return true;
             }
