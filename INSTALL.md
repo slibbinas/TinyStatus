@@ -11,8 +11,16 @@ It is not on Google Play, so it is installed by **sideloading**.
 ## What you need
 
 - A Wear OS 4+ watch (developed and tested on Galaxy Watch 8)
-- **TinyMakerWiFi firmware 0.11.0 or newer.** Older builds (from 0.8.4) work
-  too, except for the low-resin warning - the API had no `vatLow` back then
+- **TinyMakerWiFi firmware 0.16.2 or newer** - that is what this was tested
+  against. It also runs on **0.11.0**, which is where the resin fields
+  (`vatRemainingMl`, `vatLow`) first appeared, and will start on **0.9.0**,
+  where `/api/status` itself began - but with less to show.
+
+  Three fields arrived only in **0.17.0**, and without them the app degrades
+  rather than breaks: `waitStage` (a canceled print is then told apart from a
+  finished one by `stateCode` alone, which is coarser between two polls) and
+  `lowResinWarnMl` (the low-resin warning then uses the firmware default of
+  5 ml instead of your configured threshold)
 - Watch and printer on the **same Wi-Fi network**
 
 ## Installing

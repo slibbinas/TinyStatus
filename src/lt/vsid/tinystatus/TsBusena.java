@@ -37,7 +37,6 @@ public final class TsBusena {
     public String resinText = "";
     public double vatRemainingMl = -1;
     public String vatText = "";
-    public double vatGrams = -1;
     public boolean vatLow;
     public String ip = "";
     /** Kada gauta (System.currentTimeMillis). */
@@ -76,7 +75,6 @@ public final class TsBusena {
             b.resinText = j.optString("resinText", "");
             b.vatRemainingMl = j.optDouble("vatRemainingMl", -1);
             b.vatText = j.optString("vatText", "");
-            b.vatGrams = j.optDouble("vatGrams", -1);
             b.vatLow = j.optBoolean("vatLow", false);
             b.ip = j.optString("ip", "");
             b.at = at;
