@@ -57,3 +57,15 @@ Taisyti reikia generatoriaus.
 | `TsKompl.java` | komplikacijų teikėjai; tinklo NELIEČIA |
 | `MainActivity.java` | ekranas, gestai, nustatymų langai |
 
+## Paveiksleliai dokumentuose
+
+**Kiekviena laikrodzio nuotrauka rodoma SU KORPUSO REMELIU** (V, 2026-09-10).
+Remeli uzdeda `laikrodzio_korpusas.korpusas()`: jis apkerpa kvadratini
+`screencap` iki apskritimo ir apibrezia Galaxy Watch korpusa su skale.
+
+Kodel tai svarbu: plika ekrano ispjova atrodo kaip maketas, o su remeliu - kaip
+laikrodis ant riesto. Galioja `README`, laidu aprasams ir GIF'ams vienodai.
+
+**Rezultatai gula i `docs/`, NE i `build/`.** `build/` yra valomas katalogas, ir
+`build.sh` ji trina - 2026-09-10 taip dingo visas GIF'as kartu su desimtimi
+tikru laikrodzio nuotrauku.
