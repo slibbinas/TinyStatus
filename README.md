@@ -3,6 +3,8 @@
 A Wear OS app that shows your **[TinyMakerWiFi](https://github.com/slibbinas/TinyMakerWifi)**
 3D printer on your wrist and on your watch face.
 
+![TinyStatus](docs/img/tinystatus.gif)
+
 Time left, current layer, resin left in the vat, and a progress ring. It can
 watch the print in the background and buzz your wrist when the print ends or
 the resin runs low. The numbers can also live on your watch face as
