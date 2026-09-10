@@ -1,67 +1,76 @@
 # TinyStatus
 
-Wear OS programėlė, rodanti **[TinyMakerWiFi](https://github.com/slibbinas/TinyMakerWifi)**
-spausdintuvo būseną ant riešto ir ciferblate.
+A Wear OS app that shows your **[TinyMakerWiFi](https://github.com/slibbinas/TinyMakerWifi)**
+3D printer on your wrist and on your watch face.
 
-Kiek liko laiko, kelintas sluoksnis, kiek dervos vonelėje, progreso žiedas.
-Fone gali sekti spausdinimą ir pranešti, kai jis baigiasi arba baigiasi derva.
-Reikšmes galima įsidėti į ciferblatą kaip komplikacijas - tada matai jas
-nepakėlęs piršto.
+Time left, current layer, resin left in the vat, and a progress ring. It can
+watch the print in the background and buzz your wrist when the print ends or
+the resin runs low. The numbers can also live on your watch face as
+complications, so you see them without opening anything.
 
-Diegimas ir naudojimas: **[INSTALL.md](INSTALL.md)**.
-Laidos: [Releases](https://github.com/slibbinas/TinyStatus/releases).
+Install and usage: **[INSTALL.md](INSTALL.md)** · Downloads:
+[Releases](https://github.com/slibbinas/TinyStatus/releases)
 
-## Kodėl atskira repozitorija
+## Why this repository exists
 
-Iki 2026-09-10 kodas gyveno `vdigi` (ciferblato) repozitorijoje, o laidos buvo
-skelbiamos `TinyMakerWifi`. Abu dalykai buvo laikini ir kliuvo:
+Until 2026-09-10 the code lived in the watch face repository and the releases
+were published under `TinyMakerWifi`. Both were temporary and both got in the
+way: a watch face has nothing to do with a printer, and `TinyMakerWifi` is a
+PlatformIO project where an Android toolchain would pollute the firmware CI,
+leaving the releases with no source of their own.
 
-- ciferblatas su spausdintuvu neturi nieko bendro;
-- `TinyMakerWifi` yra PlatformIO projektas, ir Android grandinė ten terštų
-  firmware CI, o laidos gulėjo be savo šaltinio.
+The history moved with the code (`git subtree split`), so the reasoning behind
+each decision came along - and in this project that reasoning is most of the
+value.
 
-Istorija perkelta su kodu (`git subtree split`), tad kiekvieno sprendimo
-paaiškinimas išliko - ten guli visi „kodėl", kurie kainavo po pusdienį.
+## Things worth knowing before reading the code
 
-## Ką verta žinoti prieš skaitant kodą
+**The printer does not announce the end of a print.** `/api/status` simply stops
+reporting `busy` and `model` goes empty. The app **derives** the ending itself by
+comparing two consecutive polls, which is why there is a whole state machine in
+`TsPranesimas.java` rather than an event handler.
 
-**Spausdintuvas apie pabaigą nepraneša.** `/api/status` tiesiog nustoja
-rodyti `busy`, o `model` ištuštėja. Pabaigą programėlė **išveda pati** iš
-dviejų gretimų apklausų skirtumo, ir iš to seka visas `TsPranesimas` sluoksnis
-su būsenos mašina.
+**The API reports no percentage** - progress is computed from layer counts.
 
-**Procentų API neduoda** - progresas skaičiuojamas iš sluoksnių.
+**Complications never touch the network.** The system asks providers every time
+you raise your wrist; if they fetched, every wrist-raise would become a Wi-Fi
+radio wake-up. They answer from cache, and freshness comes from the background
+watcher.
 
-**Komplikacijos tinklo neliečia.** Sistema jų klausia kaskart pakėlus ranką;
-jei jos skaitytų pačios, kiekvienas rankos pakėlimas virstų Wi-Fi radijo
-kėlimu. Jos atsako iš atmintinės, o šviežumą atneša fono sargas.
+**Row widths on screen are computed from the circle equation**, not chosen by
+eye - otherwise text slides under the progress ring on a round display.
 
-**Ekrano eilučių plotis skaičiuojamas iš apskritimo lygties**, ne parenkamas
-iš akies - kitaip tekstas lenda po žiedu.
-
-## Failai
+## Layout
 
 | | |
 |---|---|
-| `src/.../TsSaltinis.java` | spausdintuvų sąrašas, skaitymas, atmintinė |
-| `src/.../TsBusena.java` | `/api/status` laukai ir jų prasmė |
-| `src/.../TsPranesimas.java` | būsenos mašina ir pranešimai |
-| `src/.../TsSargas.java` | fono sargas (foreground servisas + tikslūs alarmai) |
-| `src/.../TsKompl.java` | keturi komplikacijų teikėjai |
-| `build.sh` | surenka pasirašytą APK **be Gradle** |
-| `ikonos.py` | ženkliukai (Material Symbols, Apache 2.0) |
-| `dokumentas.py` | GIF iš tikrų laikrodžio nuotraukų |
+| `src/.../TsSaltinis.java` | printer list, fetching, cache, network choice |
+| `src/.../TsBusena.java` | `/api/status` fields and what they mean |
+| `src/.../TsPranesimas.java` | state machine; the only writer of notifications |
+| `src/.../TsSargas.java` | background watcher (foreground service + exact alarms) |
+| `src/.../TsKompl.java` | four complication data sources |
+| `MainActivity.java` | screen, gestures, settings windows |
+| `build.sh` | builds a signed APK **without Gradle** |
+| `ikonos.py` | icons (Material Symbols, Apache 2.0) |
+| `dokumentas.py` | builds the GIF from real watch screenshots |
 
-## Surinkimas
+## Building
 
 ```bash
 bash build.sh
 ```
 
-Reikia JDK ir Android build-tools; **Gradle nereikia**. Pirmą kartą
-parsisiunčiama viena 700 KB Google biblioteka (`wearable:2.9.0`) -
-komplikacijų teikėjo bazinė klasė gyvena ten.
+Needs a JDK and Android build-tools; **no Gradle**. On the first run it
+downloads one 700 KB Google library (`wearable:2.9.0`) - the complication
+provider base class lives there - and keeps it in `libs/`, which is not in git.
 
-Parašo raktas į git nededamas. Numatytoji jo vieta -
-`../keystore/vdigi.keystore`, keičiama per `WEAR_KEYSTORE`. **Keisti raktą
-negalima:** kitu raktu pasirašyto APK naudotojas nebegalėtų įdiegti virš seno.
+The signing key is not in git either. It defaults to
+`../keystore/vdigi.keystore` and can be pointed elsewhere with `WEAR_KEYSTORE`.
+**Do not change the key:** an APK signed with a different one cannot be
+installed over an existing copy.
+
+## Notes on language
+
+Code comments and the working notes in `CLAUDE.md` are in Lithuanian - that is
+the maintainer's working language. Everything a user reads (this file,
+`INSTALL.md`, release notes, and the app itself) is in English.
