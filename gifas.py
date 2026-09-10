@@ -8,10 +8,9 @@ visas ankstesnis GIF'as kartu su nuotraukomis.
 Kadrai apgaubiami korpuso remeliu: plika ekrano ispjova atrodo kaip maketas,
 o su remeliu - kaip laikrodis ant riesto.
 
-TRUKSTA VYKSTANCIO SPAUSDINIMO. Sio GIF'o kadrai nufotografuoti tada, kai
-spausdintuvas jau buvo baigęs, tad pagrindinis ekranas rodo `DONE`. Kai kita
-karta kas nors spausdins, uztenka nufotografuoti viena ekrana i
-`docs/img/t_spausdina.png` - jis bus paimtas automatiskai ir atsidurs pirmas.
+Pirmas kadras yra VYKSTANTIS spausdinimas (`t_spausdina.png`, 2026-09-10):
+tikras spaudinys, 8 sluoksnis is 408, ziedas tik prasidejes. Jis nebutinas -
+jei failo nera, juosta prasideda nuo pabaigos ekrano.
 
 Paleidimas:  python gifas.py
 """
