@@ -10,7 +10,7 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="$(cd "$HERE/../.." && pwd)"
+ROOT="$HERE"
 SDK="${ANDROID_SDK:-/c/Users/SViktoras/dev-tools/android-sdk}"
 # NEIMTI is JAVA_HOME: masinoje jis rodo i sistemini JRE, kuris neturi javac.
 JDK="${VDIGI_JDK:-/c/Users/SViktoras/dev-tools/jdk-21.0.12.1+1}"
@@ -28,9 +28,21 @@ OUT="$HERE/build"
 # versionCode PRIVALO dideti, kitaip naudotojas negales atsinaujinti:
 # sistema atmeta ta pati numeri be jokio paaiskinimo. Commit'u skaicius
 # tam tinka - jis niekada nemazeja ir nereikalauja nieko prisiminti.
-VERSION_CODE="${VERSION_CODE:-$(git -C "$ROOT" rev-list --count HEAD 2>/dev/null || echo 1)}"
+# versionCode PRIVALO tik dideti - Android atmeta atnaujinima su mazesniu
+# numeriu be jokio paaiskinimo.
+#
+# Iki 2026-09-10 programele gyveno `vdigi` repozitorijoje, ir numeris buvo
+# TOS repozitorijos komitu skaicius; paskutine viesa laida buvo 0.1.254.
+# Atskyrus koda i sia repozitorija komitu liko 23, tad be poslinkio numeris
+# butu kritęs nuo 254 iki 23, ir jau idiegusieji nebegaletu atsinaujinti.
+# BAZE parinkta taip, kad numeris tęstusi ten, kur buvo nutruks.
+VERSION_BASE=254
+VERSION_CODE="${VERSION_CODE:-$((VERSION_BASE + $(git -C "$ROOT" rev-list --count HEAD 2>/dev/null || echo 1)))}"
 VERSION_NAME="${VERSION_NAME:-0.1.$VERSION_CODE}"
-KS="$ROOT/keystore/vdigi.keystore"
+# Parašo raktas BENDRAS visoms sio autoriaus Wear programelems ir i git
+# nededamas. Keisti ji negalima: kitu raktu pasirasyto APK naudotojas
+# nebegaletu idiegti virs seno - Android tokio atnaujinimo nepriima.
+KS="${WEAR_KEYSTORE:-/c/Users/SViktoras/Documents/WatchFaces/keystore/vdigi.keystore}"
 
 export JAVA_HOME="$JDK"
 

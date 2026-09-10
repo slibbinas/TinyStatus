@@ -2,7 +2,7 @@
 """TinyStatus GIF: visi programeles ekranai vienoje juostoje.
 
 Nuotraukos - TIKROS, is laikrodzio (`adb exec-out screencap -p`), sudetos i
-`build/doc_ts/`. Nieko cia nepiesiama is naujo: GIF turi rodyti tai, kas is
+`build/doc/`. Nieko cia nepiesiama is naujo: GIF turi rodyti tai, kas is
 tikruju yra ekrane, o ne tai, kaip norejosi.
 
 Kadru saltiniai (vardai turi sutapti su tuo, kas nufotografuota):
@@ -18,18 +18,18 @@ Kadru saltiniai (vardai turi sutapti su tuo, kas nufotografuota):
     g11_done        spausdinimas baigtas (DONE) - programeles isvesta busena,
                     nes API apie pabaiga nepraneša
 
-Paleidimas:  python tools/tinystatus/dokumentas.py
+Paleidimas:  python dokumentas.py
 """
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from PIL import Image
 import laikrodzio_korpusas as korp
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
-DOC = os.path.join(ROOT, "build", "doc_ts")
+ROOT = os.path.dirname(os.path.abspath(__file__))
+DOC = os.path.join(ROOT, "build", "doc")
 FONAS = "#ffffff"
 
 
