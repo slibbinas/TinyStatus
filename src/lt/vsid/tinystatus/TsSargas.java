@@ -57,7 +57,29 @@ public class TsSargas extends Service {
     static final int[] INTERVALAI = {0, 1, 2, 5, 10};
     private static final long CONST_MS = 30_000L;
     private static final long IDLE_STOP_MS = 20L * 60_000;
+    /** Kiek be rysio laukiam, kai paskutine matyta busena NEBUVO spausdinimas. */
     private static final long OFF_STOP_MS = 30L * 60_000;
+    /**
+     * Kiek be rysio laukiam, kai paskutine matyta busena BUVO spausdinimas.
+     *
+     * 2026-09-10 sargas po 30 min tylos issijunge, o spaudinys dar tesesi
+     * valanda: derva baigesi, V papilde, pratese - ir laikrodis viso to
+     * nematė. Kol zinom, kad spausdina, pasiduoti anksti yra blogiausia, ka
+     * galima padaryti: butent tada ir reikia pranesimo. 12 h - ilgesnis uz bet
+     * kuri spaudini, bet vis dar riba, kad sargas nedegintu baterijos amzinai.
+     */
+    private static final long OFF_STOP_BUSY_MS = 12L * 3600_000;
+    /** Po tiek tylos spausdinant - vienas pranesimas, kad laikrodis nebemato. */
+    private static final long AKLAS_PRANESTI_MS = 10L * 60_000;
+    /** Aklumo metu tikrinam ne dazniau nei kas tiek - kiekvienas bandymas zadina radija. */
+    private static final long AKLAS_INTERVALAS_MS = 5L * 60_000;
+    /**
+     * Kiek laukiam, kol Wear pakels Wi-Fi radija.
+     *
+     * Energijos auditas matavo 3-6 s. Duodam dasnesni laika: jei nepakele per
+     * 10 s, kitas tikas pabandys is naujo, o ne sis lauks ilgiau.
+     */
+    private static final long WIFI_LAUKIAM_MS = 10_000L;
     private static final int BATERIJA_MIN = 15;
 
     private static volatile boolean veikia;
@@ -65,6 +87,8 @@ public class TsSargas extends Service {
     private ConnectivityManager.NetworkCallback wifiCb;
     private volatile Network laikomasWifi;
     private long pirmasBeRysio;
+    /** Ar jau pranesta, kad laikrodis nebemato spausdintuvo (sio aklumo metu). */
+    private boolean aklumasPranestas;
 
     public static boolean veikia() {
         return veikia;
@@ -256,14 +280,38 @@ public class TsSargas extends Service {
         TsKompl.atnaujink(this);
 
         if (kasNorsAtsake) {
+            if (pirmasBeRysio != 0) {
+                Log.i(TAG, "sargas: rysys grizo po " + (now - pirmasBeRysio) / 60_000 + " min");
+            }
             pirmasBeRysio = 0;
+            if (aklumasPranestas) {
+                // Vel matom - "nebematau" pranesimas nebegalioja.
+                TsPranesimas.nuimk(this, 0, TsPranesimas.K_WATCH);
+                aklumasPranestas = false;
+            }
         } else if (pirmasBeRysio == 0) {
             pirmasBeRysio = now;
-        } else if (now - pirmasBeRysio > OFF_STOP_MS) {
-            TsPranesimas.pranesk(this, TsPranesimas.id(0, TsPranesimas.K_WATCH),
-                    "Printer unreachable", "stopped watching after 30 min");
-            baik("30 min be rysio");
-            return;
+        } else {
+            long tyla = now - pirmasBeRysio;
+            boolean spausdino = TsPranesimas.kasNorsSpausdino(this);
+            // Viena nepavykusi apklausa nera isvada: spausdintuvas siusdamas
+            // Telegram zinute gali tyleti iki ~13 s (printerio sesija, 2026-09-10).
+            if (spausdino && tyla > AKLAS_PRANESTI_MS && !aklumasPranestas) {
+                // Pasakom VIENA karta: be sito zmogus mano, kad laikrodis
+                // saugo, o jis aklas - taip ir nutiko 2026-09-10.
+                TsPranesimas.pranesk(this, TsPranesimas.id(0, TsPranesimas.K_WATCH),
+                        "Can't reach the printer",
+                        "Still trying. Keep the watch near Wi-Fi to get alerts.");
+                aklumasPranestas = true;
+            }
+            long riba = spausdino ? OFF_STOP_BUSY_MS : OFF_STOP_MS;
+            if (tyla > riba) {
+                TsPranesimas.pranesk(this, TsPranesimas.id(0, TsPranesimas.K_WATCH),
+                        "Printer unreachable", "stopped watching after "
+                                + (riba >= 3600_000 ? (riba / 3600_000) + " h" : (riba / 60_000) + " min"));
+                baik((riba / 60_000) + " min be rysio");
+                return;
+            }
         }
         if (!kasNorsSpausdina && kasNorsAtsake) {
             long nuoPabaigos = now - naujausiaPabaiga;
@@ -272,7 +320,13 @@ public class TsSargas extends Service {
                 return;
             }
         }
-        planuok(intervaloMs(kasNorsSpausdina));
+        // Akli tikai retesni: kiekvienas is ju zadina Wi-Fi radija, o
+        // spausdintuvas per kelias minutes niekur nedings.
+        long kitas = intervaloMs(kasNorsSpausdina || TsPranesimas.kasNorsSpausdino(this));
+        if (pirmasBeRysio != 0) {
+            kitas = Math.max(kitas, AKLAS_INTERVALAS_MS);
+        }
+        planuok(kitas);
     }
 
     private int baterija() {
@@ -342,45 +396,67 @@ public class TsSargas extends Service {
         return laikykWifi();
     }
 
+    /**
+     * Wi-Fi tinklas sargui. KASKART, kol jo neturim, siunciam NAUJA uzklausa.
+     *
+     * Taip buvo ne visada, ir tai buvo 2026-09-10 aklumo priezastis. Anksciau
+     * uzklausa buvo registruojama VIENA karta visai sesijai. Kai laikrodis
+     * gulejo ant stalo salia telefono, Wear isjunge Wi-Fi radija; sena
+     * uzklausa liko registruota, bet naujo pakėlimo nebeprašė, o kiekvienas
+     * kitas kvietimas susikurdavo nauja laukimo skaitikli, kurio senasis
+     * klausytojas niekada neatleisdavo - tad 4,5 s laukimas ir tuscias
+     * atsakymas kas tika, 30 minuciu is eiles.
+     *
+     * Dabar: jei laikomo tinklo nera, sena uzklausa atleidziama ir siunciama
+     * nauja, su savo laukimo skaitikliu ir laiko riba.
+     */
     private Network laikykWifi() {
+        if (laikomasWifi != null) {
+            return laikomasWifi;
+        }
         ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
         if (cm == null) {
             return null;
         }
+        paleiskWifi();
         final CountDownLatch laukiam = new CountDownLatch(1);
-        if (wifiCb == null) {
-            wifiCb = new ConnectivityManager.NetworkCallback() {
-                @Override
-                public void onAvailable(Network n) {
-                    laikomasWifi = n;
-                    Log.i(TAG, "sargas: Wi-Fi gautas");
-                    laukiam.countDown();
-                }
-
-                @Override
-                public void onLost(Network n) {
-                    laikomasWifi = null;
-                    Log.i(TAG, "sargas: Wi-Fi dingo");
-                }
-
-                @Override
-                public void onUnavailable() {
-                    laukiam.countDown();
-                }
-            };
-            try {
-                cm.requestNetwork(new NetworkRequest.Builder()
-                        .addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build(), wifiCb);
-            } catch (RuntimeException e) {
-                Log.w(TAG, "sargas: Wi-Fi uzsakyti nepavyko: " + e);
-                wifiCb = null;
-                return null;
+        wifiCb = new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onAvailable(Network n) {
+                laikomasWifi = n;
+                Log.i(TAG, "sargas: Wi-Fi gautas");
+                laukiam.countDown();
             }
+
+            @Override
+            public void onLost(Network n) {
+                if (n.equals(laikomasWifi)) {
+                    laikomasWifi = null;
+                }
+                Log.i(TAG, "sargas: Wi-Fi dingo");
+            }
+
+            @Override
+            public void onUnavailable() {
+                Log.i(TAG, "sargas: Wi-Fi negautas per " + WIFI_LAUKIAM_MS / 1000 + " s");
+                laukiam.countDown();
+            }
+        };
+        try {
+            // Su laiko riba: nepakilus Wear pats atleidzia uzklausa ir kviecia
+            // onUnavailable - kitas tikas pabandys is naujo, o ne kabos.
+            cm.requestNetwork(new NetworkRequest.Builder()
+                    .addTransportType(NetworkCapabilities.TRANSPORT_WIFI).build(),
+                    wifiCb, (int) WIFI_LAUKIAM_MS);
+        } catch (RuntimeException e) {
+            Log.w(TAG, "sargas: Wi-Fi uzsakyti nepavyko: " + e);
+            wifiCb = null;
+            return null;
         }
         try {
-            laukiam.await(4500, TimeUnit.MILLISECONDS);
+            laukiam.await(WIFI_LAUKIAM_MS + 1000L, TimeUnit.MILLISECONDS);
         } catch (InterruptedException ignored) {
-            // grizinam, ka turim
+            // grazinam, ka turim
         }
         return laikomasWifi;
     }

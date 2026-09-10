@@ -9,6 +9,9 @@
     <string name="done">DONE</string>
     <string name="canceled">CANCELED</string>
     <string name="stopped">STOPPED</string>
+    <!-- Pabaiga, kurios laikrodis nemate: nezinom, kaip baigesi, tad nesakom. -->
+    <string name="ended">ENDED</string>
+    <string name="unseen_ago">ended %1$s ago, unseen</string>
     <string name="idle">IDLE</string>
     <string name="busy_maybe">NOT RESPONDING</string>
     <!-- %1$d - sekundes nuo paskutinio atsakymo -->

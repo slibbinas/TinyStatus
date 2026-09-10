@@ -54,7 +54,14 @@ public class MainActivity extends Activity {
     /** Kiek laiko be sekmingo atsakymo dar rodom senas reiksmes. Pulto
      *  dashboard'as daro ta pati: spausdintuvas neatsako reguliariai - ji uzima
      *  ikelimas, SD darbai, perziuros generavimas - ir tai NORMALU. */
-    private static final long STALE_MS = 12000;
+    /**
+     * Po tiek tylos ekrane atsiranda NOT RESPONDING.
+     *
+     * 20 s, o ne 12: siusdamas Telegram zinute spausdintuvas HTTP
+     * neaptarnauja iki ~13 s blogiausiu atveju (printerio sesija, 2026-09-10).
+     * Tokia tyla nera gedimas, ir apie ja rekti nereikia.
+     */
+    private static final long STALE_MS = 20000;
     /**
      * Kada pasakom "OFFLINE", o ne "NOT RESPONDING".
      *
@@ -422,12 +429,13 @@ public class MainActivity extends Activity {
             int rusis = TsPranesimas.pabaigosRusis(this, n);
             long end = TsPranesimas.pabaigosLaikas(this, n);
             boolean gerai = rusis == TsPranesimas.PABAIGA_BAIGTA;
+            boolean nematyta = rusis == TsPranesimas.PABAIGA_NEMATYTA;
             String was = TsPranesimas.pabaigosModelis(this, n);
-            didelis.setText(gerai ? R.string.done
+            didelis.setText(gerai ? R.string.done : nematyta ? R.string.ended
                     : (rusis == TsPranesimas.PABAIGA_ATSAUKTA ? R.string.canceled : R.string.stopped));
             didelis.setTextColor(getColor(gerai ? R.color.brand_ok : R.color.brand_warn));
-            state.setText(getString(gerai ? R.string.finished_ago : R.string.ended_ago,
-                    since(now - end)));
+            state.setText(getString(gerai ? R.string.finished_ago
+                    : nematyta ? R.string.unseen_ago : R.string.ended_ago, since(now - end)));
             state.setTextColor(getColor(R.color.brand_latte));
             model.setText(was.isEmpty() ? getString(R.string.dash) : was);
             layer.setText(getString(R.string.layers, TsPranesimas.pabaigosSluoksniai(this, n)));

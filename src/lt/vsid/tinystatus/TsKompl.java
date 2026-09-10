@@ -49,7 +49,11 @@ public abstract class TsKompl extends ComplicationProviderService {
         if (b != null && b.busy) {
             return "";
         }
-        return TsPranesimas.rodomDone(c, n, b) ? "DONE" : "IDLE";
+        if (!TsPranesimas.rodomDone(c, n, b)) {
+            return "IDLE";
+        }
+        // DONE tik tikrai baigtam: atsauktas, nutrukes ar nematytas - ENDED.
+        return TsPranesimas.pabaigosRusis(c, n) == TsPranesimas.PABAIGA_BAIGTA ? "DONE" : "ENDED";
     }
 
     @Override

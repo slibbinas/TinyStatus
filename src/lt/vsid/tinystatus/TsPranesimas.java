@@ -44,6 +44,17 @@ public final class TsPranesimas {
     public static final int PABAIGA_BAIGTA = 1;
     public static final int PABAIGA_ATSAUKTA = 2;
     public static final int PABAIGA_NUTRUKO = 3;
+    /**
+     * Pabaiga, kurios NEMATEM: tarp paskutinio "spausdina" ir "nebespausdina"
+     * praejo per daug laiko, kad galetume pasakyti, kaip ji baigesi.
+     *
+     * 2026-09-10 laikrodis dvi valandas nepasieke spausdintuvo, o paskui
+     * pranese "baigta ties 218/408" - nors 218 buvo tik paskutinis MATYTAS
+     * sluoksnis, o spaudinys ejo iki galo. Pasenusiu skaiciu nerodom.
+     */
+    public static final int PABAIGA_NEMATYTA = 4;
+    /** Kiek tarpo tarp dvieju apklausu dar leidzia spresti, kaip baigesi. */
+    private static final long NEMATYTA_NUO_MS = 10L * 60_000;
 
     /** Kiek laiko po pabaigos dar rodom DONE ekrane ir ciferblate. */
     public static final long DONE_MS = 12L * 3600 * 1000;
@@ -157,7 +168,11 @@ public final class TsPranesimas {
         int total = p.getInt(k + "total", 0);
         long expEnd = p.getLong(k + "expEnd", 0);
         int rusis;
-        if (p.getBoolean(k + "cancel", false)) {
+        long matyta = p.getLong(k + "seenAt", 0);
+        long tarpas = (matyta == 0) ? Long.MAX_VALUE : b.at - matyta;
+        if (tarpas > Math.max(3 * intervalasMs, NEMATYTA_NUO_MS)) {
+            rusis = PABAIGA_NEMATYTA;
+        } else if (p.getBoolean(k + "cancel", false)) {
             rusis = PABAIGA_ATSAUKTA;
         } else if (total > 0 && cur >= total - 1) {
             rusis = PABAIGA_BAIGTA;            // paskutinis sluoksnis matytas
@@ -181,6 +196,9 @@ public final class TsPranesimas {
             if (rusis == PABAIGA_BAIGTA) {
                 antraste = "Print finished";
                 tekstas = trukme(run) + String.format(", ~%.1f ml used", used);
+            } else if (rusis == PABAIGA_NEMATYTA) {
+                antraste = "Print ended";
+                tekstas = "while the watch couldn't reach the printer";
             } else if (rusis == PABAIGA_ATSAUKTA) {
                 antraste = "Print canceled";
                 tekstas = "at layer " + cur + "/" + total + " after " + trukme(run);
@@ -211,6 +229,17 @@ public final class TsPranesimas {
         long end = pabaigosLaikas(c, n);
         return (b == null || !b.busy) && end > 0
                 && System.currentTimeMillis() - end < DONE_MS;
+    }
+
+    /** Ar kuris nors spausdintuvas paskutini karta matytas spausdinantis. */
+    public static boolean kasNorsSpausdino(Context c) {
+        SharedPreferences p = TsSaltinis.prefs(c);
+        for (int n = 0; n < TsSaltinis.skaicius(c); n++) {
+            if (p.getBoolean(r(n) + "busy", false)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static int pabaigosRusis(Context c, int n) {
