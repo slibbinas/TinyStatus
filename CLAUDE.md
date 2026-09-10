@@ -56,3 +56,4 @@ Taisyti reikia generatoriaus.
 | `TsSargas.java` | fono sargas; dirba TIK kol spausdinama |
 | `TsKompl.java` | komplikacijų teikėjai; tinklo NELIEČIA |
 | `MainActivity.java` | ekranas, gestai, nustatymų langai |
+
