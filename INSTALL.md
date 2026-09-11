@@ -126,7 +126,9 @@ on the printer changes them here too.
 
 One honest limitation: if a print is canceled between two polls and the app
 never sees the cancel itself, it reports `Print stopped … not finished` rather
-than `canceled`. It says what it knows, not what it guesses.
+than `canceled`. It says what it knows, not what it guesses. The same goes
+for a print that ended while the watch could not reach the printer: the
+alert says `Print ended` and that it happened out of sight.
 
 **PRINTER** - `By name` on (the default) finds a single printer by name
 (`tinymaker.lan`). Turn it off to enter **up to four printers by IP**: tap
@@ -186,7 +188,7 @@ notifications.
    the IP
 
 A short silence is not a failure: the printer gets busy with uploads and SD
-work, so the app keeps the last values on screen. After 12 seconds without an
+work, so the app keeps the last values on screen. After 20 seconds without an
 answer it says `NOT RESPONDING`, the counter at the bottom turns amber and the
 arrow spins to show it is still trying. Only after a minute and a half does it
 give up and say `OFFLINE`.
@@ -194,7 +196,7 @@ give up and say `OFFLINE`.
 ## Building from source
 
 ```bash
-bash tools/tinystatus/build.sh
+bash build.sh
 ```
 
 Needs a JDK and Android build-tools; **no Gradle**. On the first run it
