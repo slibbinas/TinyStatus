@@ -91,9 +91,13 @@ public class TsSargas extends Service {
     private PowerManager.WakeLock uzraktas;
     private ConnectivityManager.NetworkCallback wifiCb;
     private volatile Network laikomasWifi;
-    private long pirmasBeRysio;
-    /** Ar jau pranesta, kad laikrodis nebemato spausdintuvo (sio aklumo metu). */
-    private boolean aklumasPranestas;
+    /**
+     * Nuo kada be rysio ir ar tai jau pranesta - NUSTATYMUOSE, ne lauke.
+     * Android gali perkrauti procesa (START_STICKY), ir lauke laikomas laikas
+     * prasidedavo is naujo: 2026-09-11 30 min riba taip virto 50 min.
+     */
+    private static final String K_AKLAS_NUO = "sg.blind";
+    private static final String K_AKLAS_PRANESTA = "sg.blindTold";
 
     public static boolean veikia() {
         return veikia;
@@ -122,7 +126,8 @@ public class TsSargas extends Service {
 
     public static void sustabdyk(Context c, String kodel) {
         Log.i(TAG, "sargas: stabdom (" + kodel + ")");
-        TsSaltinis.prefs(c).edit().putBoolean("bg.on", false).apply();
+        TsSaltinis.prefs(c).edit().putBoolean("bg.on", false)
+                .remove(K_AKLAS_NUO).remove(K_AKLAS_PRANESTA).apply();
         try {
             c.stopService(new Intent(c, TsSargas.class));
         } catch (RuntimeException e) {
@@ -147,8 +152,10 @@ public class TsSargas extends Service {
             return START_NOT_STICKY;
         }
         veikia = true;
-        if (A_START.equals(a)) {
-            pirmasBeRysio = 0;
+        // Naujas sergejimas pradedamas svariai; sistemos perkrautas (i == null)
+        // tesia, kiek jau buvo be rysio.
+        if (i != null && A_START.equals(a)) {
+            TsSaltinis.prefs(this).edit().remove(K_AKLAS_NUO).remove(K_AKLAS_PRANESTA).apply();
         }
         tikas();
         return START_STICKY;
@@ -284,50 +291,66 @@ public class TsSargas extends Service {
         }
         TsKompl.atnaujink(this);
 
+        // Ar paskutinis ZINOMAS vaizdas - spausdinimas. Be rysio tai tas, ka
+        // matem paskutini karta; su rysiu - ka matom dabar.
+        boolean spausdino = kasNorsSpausdina || TsPranesimas.kasNorsSpausdino(this);
+
+        // Pabaiga matyta ir pranesta, o naujo spausdinimo nematyti - sergeti
+        // nebera ko, NET JEI rysys dingo. Anksciau cia reikejo, kad spausdintuvas
+        // atsakytu, ir 2026-09-11 sargas po pabaigos dar ~50 min kas 5 min kele
+        // Wi-Fi, nes butent tada Wi-Fi dingo.
+        if (!spausdino && naujausiaPabaiga > 0 && now - naujausiaPabaiga > IDLE_STOP_MS) {
+            baik("nespausdina " + (now - naujausiaPabaiga) / 60_000 + " min"
+                    + (kasNorsAtsake ? "" : ", rysio nera"));
+            return;
+        }
+        if (!spausdino && kasNorsAtsake && naujausiaPabaiga == 0) {
+            baik("nespausdina");
+            return;
+        }
+
+        SharedPreferences.Editor sg = p.edit();
+        long pirmasBeRysio = p.getLong(K_AKLAS_NUO, 0);
         if (kasNorsAtsake) {
             if (pirmasBeRysio != 0) {
                 Log.i(TAG, "sargas: rysys grizo po " + (now - pirmasBeRysio) / 60_000 + " min");
+                pirmasBeRysio = 0;
+                sg.remove(K_AKLAS_NUO);
             }
-            pirmasBeRysio = 0;
-            if (aklumasPranestas) {
+            if (p.getBoolean(K_AKLAS_PRANESTA, false)) {
                 // Vel matom - "nebematau" pranesimas nebegalioja.
                 TsPranesimas.nuimk(this, 0, TsPranesimas.K_WATCH);
-                aklumasPranestas = false;
+                sg.remove(K_AKLAS_PRANESTA);
             }
         } else if (pirmasBeRysio == 0) {
             pirmasBeRysio = now;
+            sg.putLong(K_AKLAS_NUO, now);
         } else {
             long tyla = now - pirmasBeRysio;
-            boolean spausdino = TsPranesimas.kasNorsSpausdino(this);
             // Viena nepavykusi apklausa nera isvada: spausdintuvas siusdamas
             // Telegram zinute gali tyleti iki ~13 s (printerio sesija, 2026-09-10).
-            if (spausdino && tyla > AKLAS_PRANESTI_MS && !aklumasPranestas) {
+            if (spausdino && tyla > AKLAS_PRANESTI_MS && !p.getBoolean(K_AKLAS_PRANESTA, false)) {
                 // Pasakom VIENA karta: be sito zmogus mano, kad laikrodis
                 // saugo, o jis aklas - taip ir nutiko 2026-09-10.
                 TsPranesimas.pranesk(this, TsPranesimas.id(0, TsPranesimas.K_WATCH),
                         "Can't reach the printer",
                         "Still trying. Keep the watch near Wi-Fi to get alerts.");
-                aklumasPranestas = true;
+                sg.putBoolean(K_AKLAS_PRANESTA, true);
             }
             long riba = spausdino ? OFF_STOP_BUSY_MS : OFF_STOP_MS;
             if (tyla > riba) {
                 TsPranesimas.pranesk(this, TsPranesimas.id(0, TsPranesimas.K_WATCH),
                         "Printer unreachable", "stopped watching after "
                                 + (riba >= 3600_000 ? (riba / 3600_000) + " h" : (riba / 60_000) + " min"));
+                sg.apply();
                 baik((riba / 60_000) + " min be rysio");
                 return;
             }
         }
-        if (!kasNorsSpausdina && kasNorsAtsake) {
-            long nuoPabaigos = now - naujausiaPabaiga;
-            if (naujausiaPabaiga == 0 || nuoPabaigos > IDLE_STOP_MS) {
-                baik("nespausdina " + (naujausiaPabaiga == 0 ? "" : nuoPabaigos / 60_000 + " min"));
-                return;
-            }
-        }
+        sg.apply();
         // Akli tikai retesni: kiekvienas is ju zadina Wi-Fi radija, o
         // spausdintuvas per kelias minutes niekur nedings.
-        long kitas = intervaloMs(kasNorsSpausdina || TsPranesimas.kasNorsSpausdino(this));
+        long kitas = intervaloMs(spausdino);
         if (pirmasBeRysio != 0) {
             kitas = Math.max(kitas, AKLAS_INTERVALAS_MS);
         }
@@ -345,7 +368,8 @@ public class TsSargas extends Service {
 
     private void baik(String kodel) {
         Log.i(TAG, "sargas: baigiam - " + kodel);
-        TsSaltinis.prefs(this).edit().putBoolean("bg.on", false).apply();
+        TsSaltinis.prefs(this).edit().putBoolean("bg.on", false)
+                .remove(K_AKLAS_NUO).remove(K_AKLAS_PRANESTA).apply();
         stopSelf();
     }
 
