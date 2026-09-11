@@ -30,6 +30,10 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <!-- Sargo atkurimas po perkrovimo spausdinimo viduryje. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- ZONDAS (TsAtnaujink): atsinaujinti is GitHub laidos (V leido 2026-09-11).
+         Pats leidimas dar nieko neleidzia - naudotojas ji ijungia "Install
+         unknown apps", o Android diegia tik tuo paciu raktu pasirasyta APK. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <!--
       usesCleartextTraffic BUTINA: nuo Android 9 paprastas http:// blokuojamas
@@ -160,5 +164,10 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+
+        <!-- Diegimo busena: siuncia sistema per musu PendingIntent. -->
+        <receiver
+            android:name=".TsAtnaujink$Busena"
+            android:exported="false" />
     </application>
 </manifest>

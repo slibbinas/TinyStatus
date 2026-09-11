@@ -261,6 +261,33 @@
                 android:orientation="vertical" />
 
             <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:maxLines="1"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/brand_blue_light"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="4dp"
+                android:text="@string/t_app" />
+
+            <TextView
+                android:id="@+id/upd_check"
+                style="@style/Mygtukas"
+                android:text="@string/a_update" />
+
+            <!-- ZONDAS: versija, o tikrinant - kiekvienas zingsnis (TsAtnaujink). -->
+            <TextView
+                android:id="@+id/upd_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_marginTop="6dp"
+                android:textSize="10sp"
+                android:textColor="@color/brand_muted" />
+
+            <TextView
                 android:id="@+id/n_close"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

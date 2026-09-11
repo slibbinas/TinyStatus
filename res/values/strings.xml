@@ -47,6 +47,11 @@
     <string name="auto_off">Up to 4 printers</string>
     <string name="a_add">Add printer</string>
     <string name="a_close">Close</string>
+    <string name="t_app">APP</string>
+    <string name="a_update">Check for updates</string>
+    <string name="upd_version">Version %1$s</string>
+    <!-- Diegimas uzmusa procesa kartu su sargu. -->
+    <string name="upd_printing">Not while watching a print</string>
 
     <!-- IP langas -->
     <string name="t_ip">PRINTER IP</string>

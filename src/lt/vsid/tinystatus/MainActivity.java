@@ -147,6 +147,7 @@ public class MainActivity extends Activity {
 
         gestaiSukurk();
         nustatymaiSukurk();
+        atnaujinimasSukurk();
         stulpelis.getViewTreeObserver().addOnGlobalLayoutListener(
                 new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
                     @Override
@@ -186,6 +187,11 @@ public class MainActivity extends Activity {
                     TsSaltinis.zonduok(MainActivity.this);
                 }
             }).start();
+        }
+        // ... --ez update true  - atnaujinimo zondas, kaip mygtukas nustatymuose
+        if (i.getBooleanExtra("update", false)) {
+            rodykNustatymus(true);
+            tikrinkAtnaujinima();
         }
         String demo = i.getStringExtra("demo");
         if (demo != null) {
@@ -718,6 +724,50 @@ public class MainActivity extends Activity {
                 rodykNustatymus(true);
             }
         });
+    }
+
+    // ------------------------------------------------------------ atnaujinimas
+
+    /** ZONDAS "Check for updates": kiekvienas zingsnis - i ekrana ir zurnala. */
+    private void atnaujinimasSukurk() {
+        TextView busena = findViewById(R.id.upd_status);
+        String po = TsAtnaujink.poDiegimo(this);
+        busena.setText(po != null ? po
+                : getString(R.string.upd_version, TsAtnaujink.versijosVardas(this)));
+        findViewById(R.id.upd_check).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                tikrinkAtnaujinima();
+            }
+        });
+    }
+
+    private void tikrinkAtnaujinima() {
+        final TextView busena = findViewById(R.id.upd_status);
+        // Diegimas uzmusa procesa kartu su sargu - spausdinimo viduryje tai
+        // reikstu pranesimu tyla iki pabaigos.
+        if (TsSargas.veikia()) {
+            busena.setText(R.string.upd_printing);
+            return;
+        }
+        busena.setText(R.string.e_checking);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                TsAtnaujink.zonduok(MainActivity.this, new TsAtnaujink.Eiga() {
+                    @Override
+                    public void zingsnis(final String t) {
+                        Log.i(TAG, "atnaujinimas: " + t.replace('\n', ' '));
+                        ui.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                busena.setText(t);
+                            }
+                        });
+                    }
+                });
+            }
+        }).start();
     }
 
     private void rodykNustatymus(boolean ar) {
