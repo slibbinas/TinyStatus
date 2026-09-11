@@ -277,7 +277,7 @@
                 style="@style/Mygtukas"
                 android:text="@string/a_update" />
 
-            <!-- ZONDAS: versija, o tikrinant - kiekvienas zingsnis (TsAtnaujink). -->
+            <!-- Versija, o patikrinus - ka rado (TsAtnaujink). -->
             <TextView
                 android:id="@+id/upd_status"
                 android:layout_width="match_parent"
@@ -286,6 +286,13 @@
                 android:layout_marginTop="6dp"
                 android:textSize="10sp"
                 android:textColor="@color/brand_muted" />
+
+            <!-- Tik radus naujesne laida: patikra nereiskia diegimo (V). -->
+            <TextView
+                android:id="@+id/upd_install"
+                style="@style/Mygtukas"
+                android:layout_marginTop="6dp"
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/n_close"

@@ -55,6 +55,22 @@ Use **`install -r`** when updating - it upgrades in place.
 The first time you open the app it asks to allow notifications. Say yes, or the
 print-finished and resin alerts will have nowhere to go.
 
+### Updating
+
+Versions newer than 0.1.284 update themselves: long press → **APP** →
+`Check for updates`. That only looks - it tells you `Up to date` or
+`0.1.xxx available`. Nothing is downloaded until you tap `Install 0.1.xxx`.
+
+- The first time, the watch asks you to allow TinyStatus to install apps - one
+  switch, then tap `Install` again.
+- If you installed TinyStatus with `adb` or a phone app, that first update also
+  shows Android's own `Do you want to update this app?` screen. After it,
+  TinyStatus is its own installer and later updates install without that screen.
+- Android only installs an APK signed with the same key as the copy you already
+  have, so nothing else can come in this way.
+- Not while the background watcher is running: installing restarts the app,
+  and that would stop watching the print.
+
 ## Using it
 
 ### The screen
@@ -170,10 +186,11 @@ up over waking the radio. Waking the Wi-Fi radio is the expensive part
 ## Privacy
 
 Everything stays on your network. The app talks only to your printer's local
-address, has no account, sends no telemetry, and its permissions are the
-minimum for that: network access, a foreground service to watch during a print,
-exact alarms for the interval, a wake lock during each request, and
-notifications.
+address - and to GitHub, only when you tap `Check for updates` or `Install`. It
+has no account, sends no telemetry, and its permissions are the minimum for
+that: network access, a foreground service to watch during a print, exact
+alarms for the interval, a wake lock during each request, notifications, and
+installing its own updates.
 
 ## If it shows `OFFLINE`
 

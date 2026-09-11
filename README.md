@@ -51,6 +51,7 @@ eye - otherwise text slides under the progress ring on a round display.
 | `src/.../TsPranesimas.java` | state machine; the only writer of notifications |
 | `src/.../TsSargas.java` | background watcher (foreground service + exact alarms) |
 | `src/.../TsKompl.java` | four complication data sources |
+| `src/.../TsAtnaujink.java` | checks GitHub for a newer release, installs it when you tap Install |
 | `MainActivity.java` | screen, gestures, settings windows |
 | `build.sh` | builds a signed APK **without Gradle** |
 | `ikonos.py` | icons (Material Symbols, Apache 2.0) |

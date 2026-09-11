@@ -30,7 +30,7 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <!-- Sargo atkurimas po perkrovimo spausdinimo viduryje. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <!-- ZONDAS (TsAtnaujink): atsinaujinti is GitHub laidos (V leido 2026-09-11).
+    <!-- TsAtnaujink: atsinaujinti is GitHub laidos (V leido 2026-09-11).
          Pats leidimas dar nieko neleidzia - naudotojas ji ijungia "Install
          unknown apps", o Android diegia tik tuo paciu raktu pasirasyta APK. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />

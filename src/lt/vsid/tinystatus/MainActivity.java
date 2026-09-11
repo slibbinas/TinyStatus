@@ -188,7 +188,7 @@ public class MainActivity extends Activity {
                 }
             }).start();
         }
-        // ... --ez update true  - atnaujinimo zondas, kaip mygtukas nustatymuose
+        // ... --ez update true  - "Check for updates" (tik patikra, nediegia)
         if (i.getBooleanExtra("update", false)) {
             rodykNustatymus(true);
             tikrinkAtnaujinima();
@@ -728,7 +728,9 @@ public class MainActivity extends Activity {
 
     // ------------------------------------------------------------ atnaujinimas
 
-    /** ZONDAS "Check for updates": kiekvienas zingsnis - i ekrana ir zurnala. */
+    /** Rasta naujesne laida; "Install" mygtukas rodomas tik tada. */
+    private volatile TsAtnaujink.Laida rastaLaida;
+
     private void atnaujinimasSukurk() {
         TextView busena = findViewById(R.id.upd_status);
         String po = TsAtnaujink.poDiegimo(this);
@@ -740,34 +742,73 @@ public class MainActivity extends Activity {
                 tikrinkAtnaujinima();
             }
         });
+        findViewById(R.id.upd_install).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                diekAtnaujinima();
+            }
+        });
     }
 
+    /** Tik paziureti, ar yra naujesne. Nieko nesiuncia ir nediegia (V). */
     private void tikrinkAtnaujinima() {
         final TextView busena = findViewById(R.id.upd_status);
-        // Diegimas uzmusa procesa kartu su sargu - spausdinimo viduryje tai
-        // reikstu pranesimu tyla iki pabaigos.
-        if (TsSargas.veikia()) {
-            busena.setText(R.string.upd_printing);
-            return;
-        }
+        final TextView diek = findViewById(R.id.upd_install);
+        rastaLaida = null;
+        diek.setVisibility(View.GONE);
         busena.setText(R.string.e_checking);
         new Thread(new Runnable() {
             @Override
             public void run() {
-                TsAtnaujink.zonduok(MainActivity.this, new TsAtnaujink.Eiga() {
+                final TsAtnaujink.Laida l = TsAtnaujink.tikrink(MainActivity.this, eiga(busena));
+                ui.post(new Runnable() {
                     @Override
-                    public void zingsnis(final String t) {
-                        Log.i(TAG, "atnaujinimas: " + t.replace('\n', ' '));
-                        ui.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                busena.setText(t);
-                            }
-                        });
+                    public void run() {
+                        rastaLaida = l;
+                        if (l != null) {
+                            diek.setText(getString(R.string.a_install, l.vardas));
+                            diek.setSelected(true);
+                            diek.setVisibility(View.VISIBLE);
+                        }
                     }
                 });
             }
         }).start();
+    }
+
+    private void diekAtnaujinima() {
+        final TextView busena = findViewById(R.id.upd_status);
+        final TsAtnaujink.Laida l = rastaLaida;
+        if (l == null) {
+            return;
+        }
+        // Diegimas perkrauna programele kartu su sargu - spausdinimo viduryje
+        // tai reikstu pranesimu tyla iki pabaigos.
+        if (TsSargas.veikia()) {
+            busena.setText(R.string.upd_printing);
+            return;
+        }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                TsAtnaujink.diek(MainActivity.this, l, eiga(busena));
+            }
+        }).start();
+    }
+
+    private TsAtnaujink.Eiga eiga(final TextView busena) {
+        return new TsAtnaujink.Eiga() {
+            @Override
+            public void zingsnis(final String t) {
+                Log.i(TAG, "atnaujinimas: " + t);
+                ui.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        busena.setText(t);
+                    }
+                });
+            }
+        };
     }
 
     private void rodykNustatymus(boolean ar) {

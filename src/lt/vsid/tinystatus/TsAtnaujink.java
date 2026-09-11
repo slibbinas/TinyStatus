@@ -30,26 +30,24 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
- * ZONDAS: ar programele gali atsinaujinti pati - is GitHub laidos.
+ * Atsinaujinimas is GitHub laidos (V prasymas 2026-09-11).
  *
- * Tai dar NE funkcija, o klausimas su atsakymu (V prasymas 2026-09-11). Kol
- * nezinom, ka Wear OS leidzia, rasyti grazu atnaujinimo langa neverta - lygiai
- * taip pat pradetas ir BambuStatus.
+ * DU ATSKIRI ZINGSNIAI (V): "Check for updates" tik paziuri ir pasako, ar yra
+ * naujesne; siusti ir diegti - tik paspaudus "Install". Tikrinimas nereiskia
+ * diegimo.
  *
- * KA TIKRINAM, is eiles (kiekvienas zingsnis - i ekrana ir zurnala):
- *   1. ar pasiekiam GitHub API ir atsisiunciam APK;
- *   2. ar tai TinyStatus, naujesnis ir pasirasytas TUO PACIU raktu;
- *   3. ar laikrodis turi "Install unknown apps" leidima ir jo langa;
- *   4. ar PackageInstaller idiegia - su patvirtinimo langu ar be jo.
+ * ISMATUOTA Galaxy Watch 8 zondu (2026-09-11, versijos 288 -> 292):
+ *  - Wear OS turi "Install unknown apps" leidimo langa - pirma karta jis
+ *    atsidaro, naudotojas ijungia jungikli;
+ *  - kol programele NE pati savo idiegeja (idiegta per adb), Android klausia
+ *    "Do you want to update this app?";
+ *  - ir TADA klausia, jei manifeste nera UPDATE_PACKAGES_WITHOUT_USER_ACTION
+ *    (289 -> 290 klause, nors idiegeja jau buvo TinyStatus);
+ *  - su tuo leidimu ir savo idiegeja - diegia be klausimo (291 -> 292).
  *
- * KODEL BE PATVIRTINIMO GALI PAVYKTI TIK NUO ANTRO KARTO: Android 12+
- * USER_ACTION_NOT_REQUIRED leidzia tik tada, kai programele pati yra jos
- * idiegejas. Per adb idiegta TinyStatus tokia nera - pirmas atnaujinimas
- * paklaus, o po jo idiegejas jau bus ji pati.
- *
- * ZONDO ISIMTIS: jei `files/update.apk` yra (ikeltas per adb), jis naudojamas
- * vietoj GitHub. Taip diegimas patikrinamas su versija, kurios viesai nera -
- * nieko neskelbiant. Po diegimo failas istrinamas.
+ * APSAUGA yra pasirasymo raktas, ne GitHub: Android ant esamos programeles
+ * idiegia tik tuo paciu raktu pasirasyta APK, o mes tai patikrinam dar pries
+ * diegima. Adresas irasytas kode - tik slibbinas/TinyStatus.
  */
 public final class TsAtnaujink {
 
@@ -60,6 +58,21 @@ public final class TsAtnaujink {
 
     public interface Eiga {
         void zingsnis(String tekstas);
+    }
+
+    /** Rasta naujesne laida. */
+    static final class Laida {
+        final String vardas;
+        final long kodas;
+        final String url;
+        final long dydis;
+
+        Laida(String vardas, long kodas, String url, long dydis) {
+            this.vardas = vardas;
+            this.kodas = kodas;
+            this.url = url;
+            this.dydis = dydis;
+        }
     }
 
     private TsAtnaujink() {
@@ -82,7 +95,7 @@ public final class TsAtnaujink {
     }
 
     /**
-     * Po diegimo (naujas procesas): ar versija pakilo. Diegimas uzmusa sena
+     * Po diegimo (jau naujas procesas): ar versija pakilo. Diegimas uzmusa sena
      * procesa, tad sekmes zinute gali ir neateiti - irodymas yra pati versija.
      */
     static String poDiegimo(Context c) {
@@ -92,37 +105,20 @@ public final class TsAtnaujink {
             return null;
         }
         long dabar = versija(c);
-        String paskutinis = p.getString("upd.last", "");
+        Log.i(TAG, "atnaujinimas: po diegimo " + buvo + " -> " + dabar
+                + ", busena " + p.getString("upd.last", ""));
         p.edit().remove("upd.from").apply();
-        Log.i(TAG, "atnaujinimas: po diegimo " + buvo + " -> " + dabar + ", busena " + paskutinis);
         return dabar > buvo
-                ? "Updated " + buvo + " -> " + dabar
-                : "Not updated (" + paskutinis + ")";
+                ? c.getString(R.string.upd_done, versijosVardas(c))
+                : c.getString(R.string.upd_not_done);
     }
 
-    /** Paleisti GIJOJE: tinklas ir failai blokuoja. */
-    static void zonduok(Activity a, Eiga e) {
+    /**
+     * Tik PAZIURETI, ar GitHub'e yra naujesne laida. Nieko nesiuncia ir
+     * nediegia. Paleisti GIJOJE. Grazina laida, jei ji naujesne, kitaip null.
+     */
+    static Laida tikrink(Context c, Eiga e) {
         try {
-            vykdyk(a, e);
-        } catch (Exception ex) {
-            Log.w(TAG, "atnaujinimas: " + ex, ex);
-            e.zingsnis("Error\n" + ex.getClass().getSimpleName() + "\n" + ex.getMessage());
-        }
-    }
-
-    private static void vykdyk(Activity a, Eiga e) throws Exception {
-        PackageManager pm = a.getPackageManager();
-        long mano = versija(a);
-
-        // 1. Kur APK.
-        File failas = new File(a.getExternalFilesDir(null), "update.apk");
-        File apk;
-        String kilme;
-        if (failas.isFile()) {
-            apk = failas;
-            kilme = "failas";
-            e.zingsnis("1/4 Local update.apk");
-        } else {
             JSONObject r = new JSONObject(gauk(API));
             String tag = r.optString("tag_name");
             JSONArray priedai = r.optJSONArray("assets");
@@ -136,68 +132,97 @@ public final class TsAtnaujink {
                     break;
                 }
             }
-            if (url == null) {
-                e.zingsnis("1/4 GitHub " + tag + "\nno APK in the release");
-                return;
+            long kodas = kodasIsZymes(tag);
+            long mano = versija(c);
+            Log.i(TAG, "atnaujinimas: GitHub " + tag + " (" + kodas + "), idiegta " + mano
+                    + (url == null ? ", APK nera" : ""));
+            if (url == null || kodas <= mano) {
+                e.zingsnis(c.getString(R.string.upd_uptodate, versijosVardas(c)));
+                return null;
             }
-            e.zingsnis("1/4 GitHub " + tag + "\ndownloading…");
-            apk = new File(a.getCacheDir(), "update.apk");
-            long gauta = atsisiusk(url, apk);
-            Log.i(TAG, "atnaujinimas: atsiusta " + gauta + " B, laukta " + dydis + ", " + url);
-            if (dydis > 0 && gauta != dydis) {
-                e.zingsnis("2/4 Download broken\n" + gauta + " of " + dydis + " B");
-                return;
+            e.zingsnis(c.getString(R.string.upd_available, tag));
+            return new Laida(tag, kodas, url, dydis);
+        } catch (Exception ex) {
+            Log.w(TAG, "atnaujinimas: patikrinti nepavyko: " + ex);
+            e.zingsnis(c.getString(R.string.upd_no_check));
+            return null;
+        }
+    }
+
+    /** Laidos zyme "0.1.293" - versionCode yra paskutinis skaicius (build.sh). */
+    private static long kodasIsZymes(String tag) {
+        try {
+            String[] d = tag.split("\\.");
+            return Long.parseLong(d[d.length - 1]);
+        } catch (RuntimeException e) {
+            return -1;
+        }
+    }
+
+    /** Naudotojas paspaude "Install". Paleisti GIJOJE. */
+    static void diek(Activity a, Laida l, Eiga e) {
+        try {
+            diekVidus(a, l, e);
+        } catch (Exception ex) {
+            Log.w(TAG, "atnaujinimas: " + ex, ex);
+            e.zingsnis(a.getString(R.string.upd_failed));
+        }
+    }
+
+    private static void diekVidus(Activity a, Laida l, Eiga e) throws Exception {
+        PackageManager pm = a.getPackageManager();
+
+        // Leidimas - pirma, kad nesiustume veltui.
+        if (!pm.canRequestPackageInstalls()) {
+            try {
+                a.startActivity(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                        Uri.parse("package:" + a.getPackageName())));
+                Log.i(TAG, "atnaujinimas: leidimo nera, atidarytas leidimo langas");
+                e.zingsnis(a.getString(R.string.upd_allow));
+            } catch (Exception ex) {
+                Log.w(TAG, "atnaujinimas: leidimo lango nera: " + ex);
+                e.zingsnis(a.getString(R.string.upd_failed));
             }
-            kilme = "GitHub " + tag;
+            return;
         }
 
-        // 2. Ar tai TinyStatus, ar naujesnis, ar tas pats raktas. Android
-        // svetimo rakto vis tiek neidiegtu, bet pasakyti verta pries diegima.
+        e.zingsnis(a.getString(R.string.upd_downloading));
+        File apk = new File(a.getCacheDir(), "update.apk");
+        long gauta = atsisiusk(l.url, apk);
+        Log.i(TAG, "atnaujinimas: atsiusta " + gauta + " B, laukta " + l.dydis + ", " + l.url);
+        if (l.dydis > 0 && gauta != l.dydis) {
+            e.zingsnis(a.getString(R.string.upd_failed));
+            return;
+        }
+
+        // Ar tai TinyStatus, naujesne ir tuo paciu raktu. Android svetimo rakto
+        // vis tiek neidiegtu, bet geriau tai zinoti pries diegima.
         PackageInfo naujas = pm.getPackageArchiveInfo(apk.getPath(),
                 PackageManager.GET_SIGNING_CERTIFICATES);
         if (naujas == null || !a.getPackageName().equals(naujas.packageName)) {
-            e.zingsnis("2/4 Not a TinyStatus APK");
+            Log.w(TAG, "atnaujinimas: ne TinyStatus APK");
+            e.zingsnis(a.getString(R.string.upd_failed));
             return;
         }
         PackageInfo esamas = pm.getPackageInfo(a.getPackageName(),
                 PackageManager.GET_SIGNING_CERTIFICATES);
+        long mano = versija(a);
         boolean raktas = tasPatsRaktas(esamas, naujas);
-        long jo = naujas.getLongVersionCode();
-        Log.i(TAG, "atnaujinimas: " + kilme + " versija " + jo + ", idiegta " + mano
-                + ", raktas sutampa " + raktas);
-        if (!raktas) {
-            e.zingsnis("2/4 Different signing key\nnot installing");
-            return;
-        }
-        if (jo <= mano) {
-            e.zingsnis("2/4 " + naujas.versionName + " is not newer\nDownload OK, up to date");
-            return;
-        }
-        e.zingsnis("2/4 " + naujas.versionName + " is newer, same key");
-
-        // 3. Leidimas diegti.
-        boolean gali = pm.canRequestPackageInstalls();
-        Log.i(TAG, "atnaujinimas: canRequestPackageInstalls=" + gali);
-        if (!gali) {
-            try {
-                a.startActivity(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-                        Uri.parse("package:" + a.getPackageName())));
-                Log.i(TAG, "atnaujinimas: leidimo langas atidarytas");
-                e.zingsnis("3/4 Allow installing,\nthen tap again");
-            } catch (Exception ex) {
-                Log.w(TAG, "atnaujinimas: leidimo lango nera: " + ex);
-                e.zingsnis("3/4 No permission screen\non this watch");
-            }
+        Log.i(TAG, "atnaujinimas: APK versija " + naujas.getLongVersionCode() + ", idiegta "
+                + mano + ", raktas sutampa " + raktas);
+        if (!raktas || naujas.getLongVersionCode() <= mano) {
+            e.zingsnis(a.getString(R.string.upd_failed));
             return;
         }
 
-        // 4. Diegimas.
         PackageInstaller pi = pm.getPackageInstaller();
         PackageInstaller.SessionParams sp = new PackageInstaller.SessionParams(
                 PackageInstaller.SessionParams.MODE_FULL_INSTALL);
         sp.setAppPackageName(a.getPackageName());
         sp.setSize(apk.length());
         if (Build.VERSION.SDK_INT >= 31) {
+            // Veikia tik su UPDATE_PACKAGES_WITHOUT_USER_ACTION manifeste ir kai
+            // TinyStatus pati yra savo idiegeja - kitaip Android paklaus.
             sp.setRequireUserAction(PackageInstaller.SessionParams.USER_ACTION_NOT_REQUIRED);
         }
         int id = pi.createSession(sp);
@@ -219,13 +244,13 @@ public final class TsAtnaujink {
                     .putString("upd.last", "committed").commit();
             PendingIntent p = PendingIntent.getBroadcast(a, id, new Intent(a, Busena.class),
                     PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
-            e.zingsnis("4/4 Installing " + naujas.versionName + "…");
+            e.zingsnis(a.getString(R.string.upd_installing, naujas.versionName));
             Log.i(TAG, "atnaujinimas: sesija " + id + " commit");
             s.commit(p.getIntentSender());
         } finally {
             s.close();
         }
-        if (apk == failas && !failas.delete()) {
+        if (!apk.delete()) {
             Log.w(TAG, "atnaujinimas: update.apk istrinti nepavyko");
         }
     }

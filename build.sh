@@ -36,7 +36,12 @@ OUT="$HERE/build"
 # Atskyrus koda i sia repozitorija komitu liko 23, tad be poslinkio numeris
 # butu kritęs nuo 254 iki 23, ir jau idiegusieji nebegaletu atsinaujinti.
 # BAZE parinkta taip, kad numeris tęstusi ten, kur buvo nutruks.
-VERSION_BASE=254
+#
+# 2026-09-11 +10 (254 -> 264): atsinaujinimo zondui laikrodyje buvo idiegtos
+# rankiniu VERSION_CODE surinktos 291 ir 292, o komitu skaicius dar maziau.
+# Be poslinkio kita laida atrodytu ne naujesne, ir "Check for updates" jos
+# nesiulytu. Baze gali tik dideti.
+VERSION_BASE=264
 VERSION_CODE="${VERSION_CODE:-$((VERSION_BASE + $(git -C "$ROOT" rev-list --count HEAD 2>/dev/null || echo 1)))}"
 VERSION_NAME="${VERSION_NAME:-0.1.$VERSION_CODE}"
 # Parašo raktas BENDRAS visoms sio autoriaus Wear programelems ir i git

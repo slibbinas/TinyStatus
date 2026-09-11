@@ -50,6 +50,16 @@
     <string name="t_app">APP</string>
     <string name="a_update">Check for updates</string>
     <string name="upd_version">Version %1$s</string>
+    <string name="upd_uptodate">Up to date · %1$s</string>
+    <string name="upd_available">%1$s available</string>
+    <string name="upd_no_check">Couldn\'t check - no internet?</string>
+    <string name="a_install">Install %1$s</string>
+    <string name="upd_allow">Allow installing, then tap Install again</string>
+    <string name="upd_downloading">Downloading…</string>
+    <string name="upd_installing">Installing %1$s…</string>
+    <string name="upd_failed">Update failed</string>
+    <string name="upd_done">Updated to %1$s</string>
+    <string name="upd_not_done">Update not installed</string>
     <!-- Diegimas uzmusa procesa kartu su sargu. -->
     <string name="upd_printing">Not while watching a print</string>
 
