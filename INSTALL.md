@@ -30,12 +30,18 @@ It is not on Google Play, so it is installed by **sideloading**.
 1. **On the watch:** `Settings → About watch → Software`, then tap
    `Software version` five times until `Developer options` appears
 2. In there, turn on **`ADB debugging`** and **`Wireless debugging`**
-3. **On your phone**, install an app that speaks `adb` over Wi-Fi
-   (for example *Wear Installer 2*)
-4. On the watch open `Wireless debugging → Pair new device` - it shows a code
-5. Pair from the phone using that code, then pick the downloaded
-   `tinystatus.apk`
-6. **Turn both debugging switches off when you are done** - otherwise the watch
+3. **On your phone**, download `tinystatus-0.1.xxx.apk` from
+   [Releases](https://github.com/slibbinas/TinyStatus/releases/latest) - it
+   lands in the `Download` folder
+4. **On your phone**, install
+   [Wear Installer 2](https://play.google.com/store/apps/details?id=org.freepoc.wearinstaller2)
+   from Google Play. Any app that speaks `adb` over Wi-Fi will do; this one has
+   a [help page](https://freepoc.org/wear-installer-2-help-page/) that walks
+   through pairing
+5. On the watch open `Wireless debugging → Pair new device` - it shows a code
+6. In Wear Installer 2, pair using that code, choose `Custom APK`, pick the
+   downloaded file and tap `Install`
+7. **Turn both debugging switches off when you are done** - otherwise the watch
    keeps a permanent "Debugging enabled" notification and buzzes every time the
    connection drops
 

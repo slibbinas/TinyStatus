@@ -12,7 +12,8 @@ complications, so you see them without opening anything. New releases install
 from inside the app: `Check for updates` turns into `Update` when there is one.
 
 Install and usage: **[INSTALL.md](INSTALL.md)** · Downloads:
-[Releases](https://github.com/slibbinas/TinyStatus/releases)
+[Releases](https://github.com/slibbinas/TinyStatus/releases) · From your phone, no
+computer: [Wear Installer 2](https://play.google.com/store/apps/details?id=org.freepoc.wearinstaller2)
 
 ## Why this repository exists
 
