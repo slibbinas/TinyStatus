@@ -58,8 +58,8 @@ print-finished and resin alerts will have nowhere to go.
 ### Updating
 
 Versions newer than 0.1.284 update themselves: long press → **APP** →
-`Check for updates`. That only looks - it tells you `Up to date` or
-`0.1.xxx available`. Nothing is downloaded until you tap `Install 0.1.xxx`.
+`Check for updates`. That only looks: it says `Up to date`, or the button turns
+into `Install 0.1.xxx`. Nothing is downloaded until you tap it.
 
 - The first time, the watch asks you to allow TinyStatus to install apps - one
   switch, then tap `Install` again.

@@ -728,7 +728,11 @@ public class MainActivity extends Activity {
 
     // ------------------------------------------------------------ atnaujinimas
 
-    /** Rasta naujesne laida; "Install" mygtukas rodomas tik tada. */
+    /**
+     * Rasta naujesne laida. VIENAS mygtukas (V): "Check for updates", o radus
+     * naujesne jis pats tampa "Install 0.1.xxx" - be papildomo lango ir be
+     * antro mygtuko. Patikra vis tiek nieko nesiuncia ir nediegia.
+     */
     private volatile TsAtnaujink.Laida rastaLaida;
 
     private void atnaujinimasSukurk() {
@@ -739,23 +743,19 @@ public class MainActivity extends Activity {
         findViewById(R.id.upd_check).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                tikrinkAtnaujinima();
-            }
-        });
-        findViewById(R.id.upd_install).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                diekAtnaujinima();
+                if (rastaLaida != null) {
+                    diekAtnaujinima();
+                } else {
+                    tikrinkAtnaujinima();
+                }
             }
         });
     }
 
-    /** Tik paziureti, ar yra naujesne. Nieko nesiuncia ir nediegia (V). */
     private void tikrinkAtnaujinima() {
         final TextView busena = findViewById(R.id.upd_status);
-        final TextView diek = findViewById(R.id.upd_install);
-        rastaLaida = null;
-        diek.setVisibility(View.GONE);
+        final TextView mygtukas = findViewById(R.id.upd_check);
+        mygtukas.setEnabled(false);
         busena.setText(R.string.e_checking);
         new Thread(new Runnable() {
             @Override
@@ -765,10 +765,10 @@ public class MainActivity extends Activity {
                     @Override
                     public void run() {
                         rastaLaida = l;
+                        mygtukas.setEnabled(true);
                         if (l != null) {
-                            diek.setText(getString(R.string.a_install, l.vardas));
-                            diek.setSelected(true);
-                            diek.setVisibility(View.VISIBLE);
+                            mygtukas.setText(getString(R.string.a_install, l.vardas));
+                            mygtukas.setSelected(true);
                         }
                     }
                 });
@@ -778,20 +778,26 @@ public class MainActivity extends Activity {
 
     private void diekAtnaujinima() {
         final TextView busena = findViewById(R.id.upd_status);
+        final TextView mygtukas = findViewById(R.id.upd_check);
         final TsAtnaujink.Laida l = rastaLaida;
-        if (l == null) {
-            return;
-        }
         // Diegimas perkrauna programele kartu su sargu - spausdinimo viduryje
         // tai reikstu pranesimu tyla iki pabaigos.
         if (TsSargas.veikia()) {
             busena.setText(R.string.upd_printing);
             return;
         }
+        mygtukas.setEnabled(false);                // antras bakstelejimas - ne antras diegimas
         new Thread(new Runnable() {
             @Override
             public void run() {
-                TsAtnaujink.diek(MainActivity.this, l, eiga(busena));
+                if (!TsAtnaujink.diek(MainActivity.this, l, eiga(busena))) {
+                    ui.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            mygtukas.setEnabled(true);
+                        }
+                    });
+                }
             }
         }).start();
     }

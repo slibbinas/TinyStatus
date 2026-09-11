@@ -287,13 +287,6 @@
                 android:textSize="10sp"
                 android:textColor="@color/brand_muted" />
 
-            <!-- Tik radus naujesne laida: patikra nereiskia diegimo (V). -->
-            <TextView
-                android:id="@+id/upd_install"
-                style="@style/Mygtukas"
-                android:layout_marginTop="6dp"
-                android:visibility="gone" />
-
             <TextView
                 android:id="@+id/n_close"
                 android:layout_width="match_parent"

@@ -140,7 +140,9 @@ public final class TsAtnaujink {
                 e.zingsnis(c.getString(R.string.upd_uptodate, versijosVardas(c)));
                 return null;
             }
-            e.zingsnis(c.getString(R.string.upd_available, tag));
+            // "yra nauja" pasako pats mygtukas ("Install 0.1.xxx"); cia - kas
+            // idiegta dabar, kad butu su kuo palyginti.
+            e.zingsnis(c.getString(R.string.upd_version, versijosVardas(c)));
             return new Laida(tag, kodas, url, dydis);
         } catch (Exception ex) {
             Log.w(TAG, "atnaujinimas: patikrinti nepavyko: " + ex);
@@ -159,17 +161,21 @@ public final class TsAtnaujink {
         }
     }
 
-    /** Naudotojas paspaude "Install". Paleisti GIJOJE. */
-    static void diek(Activity a, Laida l, Eiga e) {
+    /**
+     * Naudotojas paspaude "Install". Paleisti GIJOJE. Grazina true, jei
+     * diegimas perduotas sistemai; false - galima bandyti dar karta.
+     */
+    static boolean diek(Activity a, Laida l, Eiga e) {
         try {
-            diekVidus(a, l, e);
+            return diekVidus(a, l, e);
         } catch (Exception ex) {
             Log.w(TAG, "atnaujinimas: " + ex, ex);
             e.zingsnis(a.getString(R.string.upd_failed));
+            return false;
         }
     }
 
-    private static void diekVidus(Activity a, Laida l, Eiga e) throws Exception {
+    private static boolean diekVidus(Activity a, Laida l, Eiga e) throws Exception {
         PackageManager pm = a.getPackageManager();
 
         // Leidimas - pirma, kad nesiustume veltui.
@@ -183,7 +189,7 @@ public final class TsAtnaujink {
                 Log.w(TAG, "atnaujinimas: leidimo lango nera: " + ex);
                 e.zingsnis(a.getString(R.string.upd_failed));
             }
-            return;
+            return false;
         }
 
         e.zingsnis(a.getString(R.string.upd_downloading));
@@ -192,7 +198,7 @@ public final class TsAtnaujink {
         Log.i(TAG, "atnaujinimas: atsiusta " + gauta + " B, laukta " + l.dydis + ", " + l.url);
         if (l.dydis > 0 && gauta != l.dydis) {
             e.zingsnis(a.getString(R.string.upd_failed));
-            return;
+            return false;
         }
 
         // Ar tai TinyStatus, naujesne ir tuo paciu raktu. Android svetimo rakto
@@ -202,7 +208,7 @@ public final class TsAtnaujink {
         if (naujas == null || !a.getPackageName().equals(naujas.packageName)) {
             Log.w(TAG, "atnaujinimas: ne TinyStatus APK");
             e.zingsnis(a.getString(R.string.upd_failed));
-            return;
+            return false;
         }
         PackageInfo esamas = pm.getPackageInfo(a.getPackageName(),
                 PackageManager.GET_SIGNING_CERTIFICATES);
@@ -212,7 +218,7 @@ public final class TsAtnaujink {
                 + mano + ", raktas sutampa " + raktas);
         if (!raktas || naujas.getLongVersionCode() <= mano) {
             e.zingsnis(a.getString(R.string.upd_failed));
-            return;
+            return false;
         }
 
         PackageInstaller pi = pm.getPackageInstaller();
@@ -253,6 +259,7 @@ public final class TsAtnaujink {
         if (!apk.delete()) {
             Log.w(TAG, "atnaujinimas: update.apk istrinti nepavyko");
         }
+        return true;
     }
 
     private static boolean tasPatsRaktas(PackageInfo a, PackageInfo b) {
@@ -334,7 +341,7 @@ public final class TsAtnaujink {
                 @SuppressWarnings("deprecation")
                 Intent patvirtink = i.getParcelableExtra(Intent.EXTRA_INTENT);
                 if (patvirtink == null) {
-                    return;
+                    return false;
                 }
                 patvirtink.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 try {
