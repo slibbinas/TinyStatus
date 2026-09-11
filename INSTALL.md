@@ -97,13 +97,18 @@ announces nothing by itself and there is nothing to watch otherwise:
 
 - it **starts** when you close the app while a print is in progress - so the
   habit is: start the print, open TinyStatus once, put your wrist down;
-- it **stops** on its own 20 minutes after the print ends, after 30 minutes
-  without an answer (it tells you), or when the battery drops below 15 %;
-- while it runs, a quiet ongoing notification says `Watching TinyMaker`.
+- it **stops** on its own 20 minutes after the print ends, or when the battery
+  drops below 15 %. If the printer stops answering it keeps trying - for up to
+  12 hours while the last thing it saw was a print, 30 minutes otherwise;
+- while it runs, a quiet ongoing notification says `Watching TinyMaker`;
+- if it cannot reach the printer for 10 minutes during a print, it says so once
+  (`Can't reach the printer`) and removes that note when contact returns.
 
-Accuracy: exact while the watch is on your wrist. Left on a table the watch
-enters deep doze, and Android stretches the interval to roughly 10 minutes no
-matter what you picked. That is a platform limit, not a setting.
+Accuracy: the watcher uses exact alarms, so the interval holds even with the
+watch lying on a table in deep doze - measured on a Galaxy Watch 8 at
+`Every 2 min`, with the print-finished alert arriving within one interval of
+the end. The watch raises its own Wi-Fi for the check when it needs to, so it
+works with the phone nearby too.
 
 **ALERTS** - which events buzz your wrist. They mirror what the printer's own
 Telegram/Discord notifications send:

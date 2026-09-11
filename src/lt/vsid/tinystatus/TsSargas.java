@@ -36,15 +36,20 @@ import java.util.concurrent.TimeUnit;
  *
  * KADA VEIKIA: tik kol spausdina (V sprendimas 2026-09-09). Startuoja, kai
  * programele uzdaroma matant vykstanti spausdinima; sustoja pats 20 min po
- * pabaigos, 30 min be rysio arba baterijai nukritus zemiau 15 %.
+ * pabaigos, be rysio - po 12 h, jei paskutinis matytas buvo spausdinimas,
+ * kitaip po 30 min, arba baterijai nukritus zemiau 15 %.
  *
  * TINKLAS: pirma per telefona (jei zondas parode, kad veikia), tada Wi-Fi,
- * kuris JAU yra, ir tik tada - vienas requestNetwork VISAI sesijai. Ne per
- * kiekviena tika: brangus yra radijo KELIMAS, ne laikymas (energijos auditas).
+ * kuris JAU yra, ir tik tada requestNetwork. Pavykusi uzklausa laikoma visa
+ * sesija - brangus yra radijo KELIMAS, ne laikymas (energijos auditas); bet
+ * nepavykusi kaskart kuriama IS NAUJO (zr. laikykWifi).
  *
- * DOZE: ant rankos laikrodis i gilu Doze neina (judesys), ir alarmai tikslus.
- * Ant stalo sistema allow-while-idle alarmus retina iki ~1 per 9 min - tai
- * pasakyta ir nustatymu prierase.
+ * DOZE: ISMATUOTA 2026-09-11, laikrodis ant stalo salia telefono, Wireless
+ * debugging isjungtas, "Every 2 min": gilus Doze (DeviceIdleController.deep)
+ * tiku NERETINO - alarmai kas 2 min, exactAllowReason=policy_permission
+ * (USE_EXACT_ALARM). Wi-Fi radija pakele pati musu uzklausa (tinklas sukurtas
+ * 2 s po REGISTER), "Print finished" atejo per viena intervala nuo pabaigos.
+ * Senas spejimas "~1 per 9 min" buvo neteisingas.
  */
 public class TsSargas extends Service {
 
