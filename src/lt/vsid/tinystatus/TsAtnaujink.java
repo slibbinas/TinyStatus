@@ -341,7 +341,7 @@ public final class TsAtnaujink {
                 @SuppressWarnings("deprecation")
                 Intent patvirtink = i.getParcelableExtra(Intent.EXTRA_INTENT);
                 if (patvirtink == null) {
-                    return false;
+                    return;
                 }
                 patvirtink.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 try {
