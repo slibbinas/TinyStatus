@@ -34,6 +34,10 @@
          Pats leidimas dar nieko neleidzia - naudotojas ji ijungia "Install
          unknown apps", o Android diegia tik tuo paciu raktu pasirasyta APK. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Be sito USER_ACTION_NOT_REQUIRED ignoruojamas: 2026-09-11 antras
+         atnaujinimas (289 -> 290) vis tiek paklause "Do you want to update",
+         nors TinyStatus jau buvo pati savo idiegeja. -->
+    <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
 
     <!--
       usesCleartextTraffic BUTINA: nuo Android 9 paprastas http:// blokuojamas
