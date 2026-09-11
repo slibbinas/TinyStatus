@@ -11,9 +11,35 @@ the resin runs low. The numbers can also live on your watch face as
 complications, so you see them without opening anything. New releases install
 from inside the app: `Check for updates` turns into `Update` when there is one.
 
-Install and usage: **[INSTALL.md](INSTALL.md)** · Downloads:
-[Releases](https://github.com/slibbinas/TinyStatus/releases) · From your phone, no
-computer: [Wear Installer 2](https://play.google.com/store/apps/details?id=org.freepoc.wearinstaller2)
+## Install
+
+**[Download the latest APK](https://github.com/slibbinas/TinyStatus/releases/latest)**
+· needs a Wear OS 4+ watch, TinyMakerWiFi firmware 0.16.2 or newer, and both on
+the same Wi-Fi.
+
+TinyStatus is not on Google Play, so it goes on the watch by sideloading - once.
+After that it updates itself.
+
+**From your phone, no computer:**
+
+1. **Watch:** `Settings → About watch → Software`, tap `Software version` five
+   times, then in `Developer options` turn on `ADB debugging` and
+   `Wireless debugging`
+2. **Phone:** download the APK from the link above, and install
+   [Wear Installer 2](https://play.google.com/store/apps/details?id=org.freepoc.wearinstaller2)
+   from Google Play
+3. **Watch:** `Wireless debugging → Pair new device` shows a code
+4. **Phone:** in Wear Installer 2 pair with that code, choose `Custom APK`, pick
+   the downloaded file, tap `Install`
+5. **Watch:** turn both debugging switches off again
+
+**From a computer:** pair with `adb pair`, then `adb install -r` the APK - see
+[INSTALL.md](INSTALL.md#option-b-from-a-computer).
+
+**Updating:** long press → **APP** → `Check for updates`. When a newer version
+is out, the button turns into `Update 0.1.xxx` - tap it.
+
+Full guide, settings and troubleshooting: **[INSTALL.md](INSTALL.md)**
 
 ## Why this repository exists
 
