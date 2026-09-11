@@ -5,7 +5,7 @@
 # uztenka javac + d8 + aapt2.
 # (Gradle demonui sioje masinoje blokuojama loopback jungtis.)
 #
-# Naudojimas:  bash tools/tinystatus/build.sh
+# Naudojimas:  bash build.sh
 
 set -euo pipefail
 

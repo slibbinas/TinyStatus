@@ -56,6 +56,26 @@ Taisyti reikia generatoriaus.
 | `TsSargas.java` | fono sargas; dirba TIK kol spausdinama |
 | `TsKompl.java` | komplikacijų teikėjai; tinklo NELIEČIA |
 | `MainActivity.java` | ekranas, gestai, nustatymų langai |
+| `TsAtnaujink.java` | atsinaujinimas iš GitHub laidos: `Check for updates` → `Update 0.1.xxx` |
+
+## Laidos (nuo 0.1.303 nuo jų priklauso atsinaujinimas programėlėje)
+
+Įdiegusieji naujas versijas gauna per mygtuką, tad laida dabar yra ir
+programėlės duomenys, ne tik atsisiuntimo puslapis:
+
+- **Žymė ir pavadinimas tik `0.1.<versionCode>`.** `TsAtnaujink` versiją skaito
+  iš paskutinio žymės skaičiaus - kitokia žymė ir programėlė naujos nepamatys.
+- **Laida `Latest` su vienu `.apk` priedu.** Skaitomas `releases/latest`, imamas
+  pirmas `.apk`; prerelease nematomas.
+- **`versionCode` tik didėja, `VERSION_BASE` tik didinamas.** Jei laikrodyje
+  stovi rankiniu `VERSION_CODE` surinkta bandomoji versija, kita laida turi būti
+  už ją didesnė (2026-09-11 dėl to bazė pakelta 254 -> 264).
+- **Tas pats raktas.** Kitu raktu pasirašytos laidos atnaujinimas nepraeis.
+- **Iš manifesto neišimti** `REQUEST_INSTALL_PACKAGES` ir
+  `UPDATE_PACKAGES_WITHOUT_USER_ACTION`: be antrojo kiekvienas atnaujinimas vėl
+  rodys sistemos langą „Do you want to update this app?" (išmatuota).
+- **Surinkimo sėkmė tikrinama pagal klaidos kodą**, ne pagal išvesties eilutes:
+  2026-09-11 nesusirenkantis kodas taip pateko į commit'ą.
 
 ## Paveiksleliai dokumentuose
 
