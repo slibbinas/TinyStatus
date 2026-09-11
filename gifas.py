@@ -34,7 +34,9 @@ EIGA = [("t_spausdina", 2200, False),   # vykstantis spausdinimas, jei turim
         ("t2", 1800, True),             # ...rastas spausdintuvas ir BACKGROUND
         ("t3", 1700, True),
         ("t4", 1700, True),             # intervalai ir ALERTS
-        ("t5", 1800, True)]             # jungikliai
+        ("t5", 1800, True),             # jungikliai
+        ("t6", 1700, True),             # likę jungikliai ir APP (nuo 0.1.303)
+        ("t7", 2200, True)]             # Check for updates / Up to date
 
 
 def kadras(vardas, dydis):

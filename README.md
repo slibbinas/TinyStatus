@@ -8,7 +8,8 @@ A Wear OS app that shows your **[TinyMakerWiFi](https://github.com/slibbinas/Tin
 Time left, current layer, resin left in the vat, and a progress ring. It can
 watch the print in the background and buzz your wrist when the print ends or
 the resin runs low. The numbers can also live on your watch face as
-complications, so you see them without opening anything.
+complications, so you see them without opening anything. New releases install
+from inside the app: `Check for updates` turns into `Update` when there is one.
 
 Install and usage: **[INSTALL.md](INSTALL.md)** · Downloads:
 [Releases](https://github.com/slibbinas/TinyStatus/releases)
