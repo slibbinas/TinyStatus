@@ -33,7 +33,7 @@ import java.util.Arrays;
  * Atsinaujinimas is GitHub laidos (V prasymas 2026-09-11).
  *
  * DU ATSKIRI ZINGSNIAI (V): "Check for updates" tik paziuri ir pasako, ar yra
- * naujesne; siusti ir diegti - tik paspaudus "Install". Tikrinimas nereiskia
+ * naujesne; siusti ir diegti - tik paspaudus "Update". Tikrinimas nereiskia
  * diegimo.
  *
  * ISMATUOTA Galaxy Watch 8 zondu (2026-09-11, versijos 288 -> 292):
@@ -140,7 +140,7 @@ public final class TsAtnaujink {
                 e.zingsnis(c.getString(R.string.upd_uptodate, versijosVardas(c)));
                 return null;
             }
-            // "yra nauja" pasako pats mygtukas ("Install 0.1.xxx"); cia - kas
+            // "yra nauja" pasako pats mygtukas ("Update 0.1.xxx"); cia - kas
             // idiegta dabar, kad butu su kuo palyginti.
             e.zingsnis(c.getString(R.string.upd_version, versijosVardas(c)));
             return new Laida(tag, kodas, url, dydis);
@@ -162,7 +162,7 @@ public final class TsAtnaujink {
     }
 
     /**
-     * Naudotojas paspaude "Install". Paleisti GIJOJE. Grazina true, jei
+     * Naudotojas paspaude "Update". Paleisti GIJOJE. Grazina true, jei
      * diegimas perduotas sistemai; false - galima bandyti dar karta.
      */
     static boolean diek(Activity a, Laida l, Eiga e) {

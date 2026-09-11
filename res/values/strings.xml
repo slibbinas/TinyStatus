@@ -52,8 +52,9 @@
     <string name="upd_version">Version %1$s</string>
     <string name="upd_uptodate">Up to date · %1$s</string>
     <string name="upd_no_check">Couldn\'t check - no internet?</string>
-    <string name="a_install">Install %1$s</string>
-    <string name="upd_allow">Allow installing, then tap Install again</string>
+    <!-- "Update", ne "Install": taip sutarta su V - Check pats virsta Update. -->
+    <string name="a_install">Update %1$s</string>
+    <string name="upd_allow">Allow installing, then tap Update again</string>
     <string name="upd_downloading">Downloading…</string>
     <string name="upd_installing">Installing %1$s…</string>
     <string name="upd_failed">Update failed</string>

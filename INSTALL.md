@@ -59,10 +59,10 @@ print-finished and resin alerts will have nowhere to go.
 
 Versions newer than 0.1.284 update themselves: long press → **APP** →
 `Check for updates`. That only looks: it says `Up to date`, or the button turns
-into `Install 0.1.xxx`. Nothing is downloaded until you tap it.
+into `Update 0.1.xxx`. Nothing is downloaded until you tap it.
 
 - The first time, the watch asks you to allow TinyStatus to install apps - one
-  switch, then tap `Install` again.
+  switch, then tap `Update` again.
 - If you installed TinyStatus with `adb` or a phone app, that first update also
   shows Android's own `Do you want to update this app?` screen. After it,
   TinyStatus is its own installer and later updates install without that screen.
@@ -186,7 +186,7 @@ up over waking the radio. Waking the Wi-Fi radio is the expensive part
 ## Privacy
 
 Everything stays on your network. The app talks only to your printer's local
-address - and to GitHub, only when you tap `Check for updates` or `Install`. It
+address - and to GitHub, only when you tap `Check for updates` or `Update`. It
 has no account, sends no telemetry, and its permissions are the minimum for
 that: network access, a foreground service to watch during a print, exact
 alarms for the interval, a wake lock during each request, notifications, and

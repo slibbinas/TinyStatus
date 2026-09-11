@@ -730,7 +730,7 @@ public class MainActivity extends Activity {
 
     /**
      * Rasta naujesne laida. VIENAS mygtukas (V): "Check for updates", o radus
-     * naujesne jis pats tampa "Install 0.1.xxx" - be papildomo lango ir be
+     * naujesne jis pats tampa "Update 0.1.xxx" - be papildomo lango ir be
      * antro mygtuko. Patikra vis tiek nieko nesiuncia ir nediegia.
      */
     private volatile TsAtnaujink.Laida rastaLaida;
