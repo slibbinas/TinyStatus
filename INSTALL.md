@@ -83,7 +83,7 @@ into `Update 0.1.xxx`. Nothing is downloaded until you tap it.
 
 | Where | What |
 |---|---|
-| Big number | **Time left.** After a print: `DONE`, `CANCELED` or `STOPPED`. Idle: `IDLE`. No answer for 90 s: `OFFLINE` |
+| Big number | **Time left.** After a print: `DONE`, `CANCELED` or `STOPPED`. Idle: `IDLE`. Just opened and still asking: `SEARCHING…`. No answer for 90 s: `OFFLINE` |
 | Above it | Printer (only with several) and the model name |
 | Below | State, layer `232 / 378`, resin left in the vat |
 | Bottom | Seconds since the printer last answered, and the background interval when the watcher is running |
