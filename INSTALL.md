@@ -98,8 +98,8 @@ Progress is computed from the layers: the API reports no percentage.
 | **Swipe down** | Refresh now - the arrow at the bottom spins while it asks |
 | **Swipe up** | Leave the app |
 | **Tap** | Refresh (same as swipe down) |
-| **Long press** | Settings |
-| **Swipe sideways** | Next printer, when you have more than one |
+| **Swipe sideways** | Next printer; after the last one, the **SETTINGS** page - it shows what is on, tap it to change |
+| **Long press** | Settings, from any page |
 
 Inside settings, a sideways swipe or the Back button goes back.
 
