@@ -101,6 +101,12 @@ public class MainActivity extends Activity {
     private int redaguojamas = -1;
     /** Po ilgo paspaudimo - nuryti likusi gesta, kol pirstas pakeliamas. */
     private boolean nurykIkiPakelimo;
+    /**
+     * Ar pirmoji uzklausa po atidarymo dar vyksta. Tol tikros busenos NEZINOM:
+     * atmintine po valandos visada senesne nei DEAD_MS, ir OFFLINE atsirasdavo
+     * dar pries pirma bandyma (V, 2026-09-12).
+     */
+    private boolean ieskom = true;
 
     private final Runnable loop = new Runnable() {
         @Override
@@ -205,6 +211,7 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         visible = true;
+        ieskom = true;
         boolean ilgai = paskutinisPasitraukimas > 0
                 && System.currentTimeMillis() - paskutinisPasitraukimas > GRIZTAM_MS;
         if (ilgai && nust.getVisibility() != View.VISIBLE && ipl.getVisibility() != View.VISIBLE) {
@@ -324,6 +331,8 @@ public class MainActivity extends Activity {
                         if (r) {
                             sukis(false);
                         }
+                        // Pirmasis bandymas baigtas - pavykes ar ne, dabar jau zinom.
+                        ieskom = false;
                         if (visible) {
                             show();
                         }
@@ -418,8 +427,18 @@ public class MainActivity extends Activity {
 
         if (b == null || age > DEAD_MS) {
             // Tikrai negyvas: nei karto negavom, arba tyli jau labai ilgai.
-            didelis.setText(R.string.offline);
-            didelis.setTextColor(getColor(R.color.brand_danger));
+            //
+            // ISSKYRUS pirma bandyma po atidarymo: tada atmintine tiesiog sena,
+            // o spausdintuvas gal ir puikiai veikia. OFFLINE butu melas - rodom,
+            // kad ieskom. Kitos busenos (spausdina, baigta, laukia) rodomos kaip
+            // buvo, jei jos dar sviezios.
+            if (ieskom) {
+                didelis.setText(R.string.searching);
+                didelis.setTextColor(getColor(R.color.brand_latte));
+            } else {
+                didelis.setText(R.string.offline);
+                didelis.setTextColor(getColor(R.color.brand_danger));
+            }
             state.setText("");
             model.setText(R.string.dash);
             layer.setText(R.string.dash);

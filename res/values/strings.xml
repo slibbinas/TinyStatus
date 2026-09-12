@@ -3,6 +3,8 @@
     <!-- Irenginio kalba - anglu (projekto taisykle). Komentarai lietuviskai. -->
     <string name="app_name">TinyStatus</string>
     <string name="offline">OFFLINE</string>
+    <!-- Kol pirmoji uzklausa po atidarymo nebaigta: busenos dar nezinom. -->
+    <string name="searching">SEARCHING…</string>
     <string name="connecting">…</string>
     <string name="dash">—</string>
     <string name="tap_hint">Tap to refresh</string>
