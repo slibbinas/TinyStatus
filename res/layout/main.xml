@@ -139,6 +139,59 @@
                 android:tint="@color/brand_faint"
                 android:contentDescription="@string/tap_hint" />
         </LinearLayout>
+
+        <!--
+          NUSTATYMU PUSLAPIS (V, 2026-09-12 - tas pats sprendimas kaip ValloxWatch):
+          aktyvus nustatymai vienu zvilgsniu, bakstelejus - redagavimo langas.
+          Iki tol i nustatymus vede tik ilgas paspaudimas, o jo niekas nerasdavo.
+          Eilutes dedamos kodu (MainActivity.pieskNustPuslapi).
+        -->
+        <LinearLayout
+            android:id="@+id/psl_nust"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingLeft="30dp"
+            android:paddingRight="30dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_marginBottom="6dp"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/brand_blue_light"
+                android:text="@string/t_settings" />
+
+            <LinearLayout
+                android:id="@+id/psl_eilutes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_marginTop="8dp"
+                android:textSize="11sp"
+                android:textColor="@color/brand_latte"
+                android:text="@string/t_tap_open" />
+        </LinearLayout>
+
+        <!-- Puslapiu taskai: spausdintuvai, paskutinis - nustatymai. -->
+        <TextView
+            android:id="@+id/taskai"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="12dp"
+            android:includeFontPadding="false"
+            android:textSize="8sp"
+            android:textColor="@color/brand_faint" />
     </FrameLayout>
 
     <!-- ============================================================ NUSTATYMAI -->

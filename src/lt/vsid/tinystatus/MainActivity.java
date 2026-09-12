@@ -107,6 +107,11 @@ public class MainActivity extends Activity {
      * dar pries pirma bandyma (V, 2026-09-12).
      */
     private boolean ieskom = true;
+    /** Ar rodomas nustatymu puslapis - paskutinis, po spausdintuvu. */
+    private boolean nustPuslapis;
+    private View pslNust;
+    private LinearLayout pslEilutes;
+    private TextView taskai;
 
     private final Runnable loop = new Runnable() {
         @Override
@@ -148,6 +153,9 @@ public class MainActivity extends Activity {
         alerts = findViewById(R.id.alerts);
         autoEilute = findViewById(R.id.auto_eilute);
         printers = findViewById(R.id.printers);
+        pslNust = findViewById(R.id.psl_nust);
+        pslEilutes = findViewById(R.id.psl_eilutes);
+        taskai = findViewById(R.id.taskai);
         cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         rodomas = TsSaltinis.rodomas(this);
 
@@ -218,8 +226,10 @@ public class MainActivity extends Activity {
             // Grizus po ilgesnio laiko - ta, kuris spausdina (arba pasirinktas),
             // ne tas, kuri paliko pirstas.
             rodomas = TsSaltinis.rodomas(this);
+            nustPuslapis = false;
         }
         requestWifi();
+        rodykPuslapi();
         show();
         ui.removeCallbacks(loop);
         ui.post(loop);
@@ -577,21 +587,38 @@ public class MainActivity extends Activity {
                 }
                 float dx = b.getX() - a.getX();
                 int kiek = TsSaltinis.skaicius(MainActivity.this);
-                if (kiek > 1 && Math.abs(dx) > 50) {
-                    rodomas = (rodomas + (dx < 0 ? 1 : kiek - 1)) % kiek;
-                    // Tas, i kuri nubraukei, tampa ir numatytuoju - jokio
-                    // atskiro "rodyti si" nustatymo nereikia.
-                    TsSaltinis.prefs(MainActivity.this).edit().putInt("pr.sel", rodomas).apply();
-                    Log.i(TAG, "spausdintuvas " + rodomas);
-                    show();
-                    fetch();
+                if (kiek > 0 && Math.abs(dx) > 50) {
+                    // Puslapiai i sona, kaip ValloxWatch (V): spausdintuvai, o po
+                    // ju - nustatymu puslapis. Su vienu spausdintuvu braukimas
+                    // tiesiog perjungia tarp jo ir nustatymu.
+                    int visi = kiek + 1;
+                    int dabar = nustPuslapis ? kiek : rodomas;
+                    int naujas = (dabar + (dx < 0 ? 1 : visi - 1)) % visi;
+                    nustPuslapis = (naujas == kiek);
+                    if (nustPuslapis) {
+                        Log.i(TAG, "nustatymu puslapis");
+                    } else {
+                        rodomas = naujas;
+                        // Tas, i kuri nubraukei, tampa ir numatytuoju - jokio
+                        // atskiro "rodyti si" nustatymo nereikia.
+                        TsSaltinis.prefs(MainActivity.this).edit().putInt("pr.sel", rodomas).apply();
+                        Log.i(TAG, "spausdintuvas " + rodomas);
+                    }
+                    rodykPuslapi();
+                    if (!nustPuslapis) {
+                        show();
+                        fetch();
+                    }
                 }
                 return true;
             }
 
             @Override
             public boolean onSingleTapUp(MotionEvent e) {
-                if (TsSaltinis.skaicius(MainActivity.this) == 0) {
+                // Nustatymu puslapyje bakstelejimas atidaro redagavimo langa -
+                // butent to ir truko (V): be sito puslapio niekas nezinojo, kad
+                // i nustatymus veda ilgas paspaudimas.
+                if (TsSaltinis.skaicius(MainActivity.this) == 0 || nustPuslapis) {
                     rodykNustatymus(true);
                 } else {
                     fetch(true);
@@ -836,6 +863,92 @@ public class MainActivity extends Activity {
         };
     }
 
+    /** Kuris puslapis matomas: spausdintuvas ar nustatymu santrauka + taskai. */
+    private void rodykPuslapi() {
+        int kiek = TsSaltinis.skaicius(this);
+        boolean nustatymai = nustPuslapis && kiek > 0;
+        ring.setVisibility(nustatymai ? View.GONE : View.VISIBLE);
+        stulpelis.setVisibility(nustatymai ? View.GONE : View.VISIBLE);
+        pslNust.setVisibility(nustatymai ? View.VISIBLE : View.GONE);
+        if (nustatymai) {
+            pieskNustPuslapi();
+        }
+        if (kiek == 0) {
+            taskai.setText("");
+            return;
+        }
+        StringBuilder s = new StringBuilder();
+        for (int i = 0; i <= kiek; i++) {
+            boolean dabar = nustatymai ? (i == kiek) : (i == rodomas);
+            s.append(dabar ? "\u25CF" : "\u25CB");
+            if (i < kiek) {
+                s.append(' ');
+            }
+        }
+        taskai.setText(s);
+    }
+
+    /**
+     * Nustatymu santrauka: kas ijungta, vienu zvilgsniu. Tos pacios eilutes kaip
+     * ValloxWatch SETTINGS puslapyje - pavadinimas pilkai, reiksme baltai.
+     */
+    private void pieskNustPuslapi() {
+        SharedPreferences p = TsSaltinis.prefs(this);
+        int kiek = TsSaltinis.skaicius(this);
+        String spausdintuvas = TsSaltinis.auto(this) ? getString(R.string.v_byname)
+                : getString(R.string.v_by_ip, kiek);
+        int[] fonoVardai = {R.string.bg_off, R.string.bg_const, R.string.bg_2,
+                R.string.bg_5, R.string.bg_10};
+        int bg = p.getInt("bg.int", 0);
+        String fonas = getString(fonoVardai[(bg >= 0 && bg < fonoVardai.length) ? bg : 0]);
+        int ijungta = 0;
+        if (p.getBoolean("al.end", true)) {
+            ijungta++;
+        }
+        if (p.getBoolean("al.warn", true)) {
+            ijungta++;
+        }
+        if (p.getBoolean("al.stop", true)) {
+            ijungta++;
+        }
+        if (p.getBoolean("al.pause", false)) {
+            ijungta++;
+        }
+        // Be fono sargo pranesimu nera kam skelbti: atidarytas ekranas nauju
+        // neskelbia (tylus=true). Melagingas "3 on" cia butu blogiau uz jokio -
+        // ta pati taisykle kaip ValloxWatch.
+        String pranesimai = (bg == 0 || ijungta == 0) ? getString(R.string.v_none)
+                : getString(R.string.v_on_n, ijungta);
+        String[][] eil = {
+                {getString(R.string.l_printer), spausdintuvas},
+                {getString(R.string.l_background), fonas},
+                {getString(R.string.l_alerts), pranesimai},
+                {getString(R.string.l_version), TsAtnaujink.versijosVardas(this)}};
+        float dp = getResources().getDisplayMetrics().density;
+        pslEilutes.removeAllViews();
+        for (String[] e : eil) {
+            LinearLayout r = new LinearLayout(this);
+            r.setOrientation(LinearLayout.HORIZONTAL);
+            TextView k = new TextView(this);
+            k.setText(e[0]);
+            k.setTextSize(13);
+            k.setTextColor(getColor(R.color.brand_muted));
+            k.setGravity(Gravity.END);
+            k.setMaxLines(1);
+            k.setPadding(0, 0, (int) (6 * dp), 0);
+            TextView v = new TextView(this);
+            v.setText(e[1]);
+            v.setTextSize(13);
+            v.setTextColor(getColor(R.color.brand_text));
+            v.setTypeface(null, android.graphics.Typeface.BOLD);
+            v.setMaxLines(1);
+            v.setEllipsize(TextUtils.TruncateAt.END);
+            r.addView(k, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+            r.addView(v, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.1f));
+            pslEilutes.addView(r);
+        }
+    }
+
     private void rodykNustatymus(boolean ar) {
         if (ar) {
             zymekFona();
@@ -850,6 +963,8 @@ public class MainActivity extends Activity {
         } else {
             nust.setVisibility(View.GONE);
             rodomas = TsSaltinis.rodomas(this);
+            // Nustatymai galejo pasikeisti - santrauka ir taskai perpiesiami.
+            rodykPuslapi();
             show();
             fetch();
         }

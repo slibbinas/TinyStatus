@@ -27,6 +27,18 @@
     <string name="age">%1$s ago</string>
     <string name="age_bg">%1$s ago · bg %2$s</string>
 
+    <!-- Nustatymu PUSLAPIS (santrauka), kaip ValloxWatch -->
+    <string name="t_settings">SETTINGS</string>
+    <string name="t_tap_open">Tap to open</string>
+    <string name="l_printer">Printer</string>
+    <string name="l_background">Background</string>
+    <string name="l_alerts">Alerts</string>
+    <string name="l_version">Version</string>
+    <string name="v_byname">By name</string>
+    <string name="v_by_ip">%1$d by IP</string>
+    <string name="v_on_n">%1$d on</string>
+    <string name="v_none">none</string>
+
     <!-- Nustatymu langas -->
     <string name="t_background">BACKGROUND</string>
     <string name="bg_off">Off</string>
