@@ -107,6 +107,16 @@ public class MainActivity extends Activity {
      * dar pries pirma bandyma (V, 2026-09-12).
      */
     private boolean ieskom = true;
+    /**
+     * Kiek ilgiausiai rodom FINDING, jei spausdintuvas vis dar neatsako.
+     *
+     * Vieno bandymo neuztenka (V, 2026-09-13: matyta FINDING -> OFFLINE -> po
+     * akimirkos IDLE): atidarius Wi-Fi dar kyla, pirma uzklausa nepavyksta, o
+     * kita po 5 s jau atsako. 15 s - tai trys bandymai.
+     */
+    private static final long IESKOM_MS = 15000;
+    /** Kada atidaryta - nuo cia skaiciuojam IESKOM_MS. */
+    private long atidaryta;
     /** Ar rodomas nustatymu puslapis - paskutinis, po spausdintuvu. */
     private boolean nustPuslapis;
     private View pslNust;
@@ -220,6 +230,7 @@ public class MainActivity extends Activity {
         super.onResume();
         visible = true;
         ieskom = true;
+        atidaryta = System.currentTimeMillis();
         boolean ilgai = paskutinisPasitraukimas > 0
                 && System.currentTimeMillis() - paskutinisPasitraukimas > GRIZTAM_MS;
         if (ilgai && nust.getVisibility() != View.VISIBLE && ipl.getVisibility() != View.VISIBLE) {
@@ -328,6 +339,7 @@ public class MainActivity extends Activity {
             public void run() {
                 // Per Wi-Fi tinkla, jei jis gautas; kitaip - kaip iseina.
                 TsBusena b = TsSaltinis.skaityk(MainActivity.this, n, wifi);
+                final boolean pavyko = (b != null);
                 if (b != null) {
                     TsSaltinis.konfig(MainActivity.this, n, wifi);
                     // Ekranas busena VEDA, bet nauju pranesimu neskelbia -
@@ -341,8 +353,11 @@ public class MainActivity extends Activity {
                         if (r) {
                             sukis(false);
                         }
-                        // Pirmasis bandymas baigtas - pavykes ar ne, dabar jau zinom.
-                        ieskom = false;
+                        // Iesko, kol spausdintuvas atsako arba baigiasi IESKOM_MS.
+                        // Vienas nepavykes bandymas dar nieko nesako.
+                        if (pavyko || System.currentTimeMillis() - atidaryta > IESKOM_MS) {
+                            ieskom = false;
+                        }
                         if (visible) {
                             show();
                         }
@@ -897,8 +912,9 @@ public class MainActivity extends Activity {
         int kiek = TsSaltinis.skaicius(this);
         String spausdintuvas = TsSaltinis.auto(this) ? getString(R.string.v_byname)
                 : getString(R.string.v_by_ip, kiek);
-        int[] fonoVardai = {R.string.bg_off, R.string.bg_const, R.string.bg_2,
-                R.string.bg_5, R.string.bg_10};
+        // Trumpai, ne "Every 5 min" (V): puslapyje tai buvo kerpama iki "5-".
+        int[] fonoVardai = {R.string.v_bg_off, R.string.v_bg_30s, R.string.v_bg_2m,
+                R.string.v_bg_5m, R.string.v_bg_10m};
         int bg = p.getInt("bg.int", 0);
         String fonas = getString(fonoVardai[(bg >= 0 && bg < fonoVardai.length) ? bg : 0]);
         int ijungta = 0;

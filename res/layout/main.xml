@@ -74,6 +74,8 @@
                 android:layout_height="36dp"
                 android:gravity="center"
                 android:maxLines="1"
+                android:hyphenationFrequency="none"
+                android:breakStrategy="simple"
                 android:includeFontPadding="false"
                 android:textSize="26sp"
                 android:autoSizeTextType="uniform"

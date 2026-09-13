@@ -3,8 +3,10 @@
     <!-- Irenginio kalba - anglu (projekto taisykle). Komentarai lietuviskai. -->
     <string name="app_name">TinyStatus</string>
     <string name="offline">OFFLINE</string>
-    <!-- Kol pirmoji uzklausa po atidarymo nebaigta: busenos dar nezinom. -->
-    <string name="searching">SEARCHING…</string>
+    <!-- Kol pirmoji uzklausa po atidarymo nebaigta: busenos dar nezinom.
+         FINDING, ne SEARCHING (V 2026-09-13: rode "SEARCH-"): ismatuota
+         laikrodzio sriftu - 99.8 % OFFLINE plocio, tad telpa taip pat. -->
+    <string name="searching">FINDING</string>
     <string name="connecting">…</string>
     <string name="dash">—</string>
     <string name="tap_hint">Tap to refresh</string>
@@ -38,6 +40,13 @@
     <string name="v_by_ip">%1$d by IP</string>
     <string name="v_on_n">%1$d on</string>
     <string name="v_none">none</string>
+    <!-- Trumpai (V: "rodyk tiesiog 5m 5s 1h") - "Every 5 min" puslapyje
+         buvo kerpamas iki "5-". -->
+    <string name="v_bg_off">Off</string>
+    <string name="v_bg_30s">30s</string>
+    <string name="v_bg_2m">2m</string>
+    <string name="v_bg_5m">5m</string>
+    <string name="v_bg_10m">10m</string>
 
     <!-- Nustatymu langas -->
     <string name="t_background">BACKGROUND</string>
