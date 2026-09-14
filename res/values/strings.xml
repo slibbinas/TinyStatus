@@ -8,7 +8,7 @@
          laikrodzio sriftu - 99.8 % OFFLINE plocio, tad telpa taip pat. -->
     <string name="searching">FINDING</string>
     <string name="connecting">…</string>
-    <string name="dash">—</string>
+    <string name="dash">-</string>
     <string name="tap_hint">Tap to refresh</string>
     <string name="done">DONE</string>
     <string name="canceled">CANCELED</string>
@@ -40,21 +40,16 @@
     <string name="v_by_ip">%1$d by IP</string>
     <string name="v_on_n">%1$d on</string>
     <string name="v_none">none</string>
-    <!-- Trumpai (V: "rodyk tiesiog 5m 5s 1h") - "Every 5 min" puslapyje
-         buvo kerpamas iki "5-". -->
-    <string name="v_bg_off">Off</string>
-    <string name="v_bg_30s">30s</string>
-    <string name="v_bg_2m">2m</string>
-    <string name="v_bg_5m">5m</string>
-    <string name="v_bg_10m">10m</string>
 
     <!-- Nustatymu langas -->
     <string name="t_background">BACKGROUND</string>
     <string name="bg_off">Off</string>
-    <string name="bg_const">Every 30 s</string>
-    <string name="bg_2">Every 2 min</string>
-    <string name="bg_5">Every 5 min</string>
-    <string name="bg_10">Every 10 min</string>
+    <!-- Be "Every" (V 2026-09-13: "Every nereikalingas, ir taip aisku").
+         Tie patys ir redagavimo lango mygtukuose, ir SETTINGS puslapyje. -->
+    <string name="bg_const">30 s</string>
+    <string name="bg_2">2 min</string>
+    <string name="bg_5">5 min</string>
+    <string name="bg_10">10 min</string>
     <!-- Trumpai (V): ilgas paaiskinimas gyvena INSTALL.md, ne ekrane. -->
     <string name="bg_hint">Only while printing</string>
     <string name="t_alerts">ALERTS</string>

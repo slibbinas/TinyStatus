@@ -117,6 +117,12 @@ public class MainActivity extends Activity {
     private static final long IESKOM_MS = 15000;
     /** Kada atidaryta - nuo cia skaiciuojam IESKOM_MS. */
     private long atidaryta;
+    /**
+     * Kurias pabaigas (spausdintuvo `end` laika) sios sesijos metu jau nupieseme.
+     * Uzdarant jos pazymimos matytomis: kita karta atidarius ir komplikacijoje
+     * vietoj DONE jau IDLE (V, 2026-09-13).
+     */
+    private final long[] pabaigaRodyta = new long[8];
     /** Ar rodomas nustatymu puslapis - paskutinis, po spausdintuvu. */
     private boolean nustPuslapis;
     private View pslNust;
@@ -256,6 +262,19 @@ public class MainActivity extends Activity {
         ui.removeCallbacks(loop);
         ui.removeCallbacks(tiksi);
         releaseWifi();
+        // Parodyta pabaiga - jau matyta. Nuo cia ekranas (kita karta) ir
+        // komplikacija (iskart) rodo IDLE, o ne DONE.
+        boolean patvirtinta = false;
+        for (int i = 0; i < pabaigaRodyta.length; i++) {
+            if (pabaigaRodyta[i] > 0) {
+                TsPranesimas.patvirtinkPabaiga(this, i, pabaigaRodyta[i]);
+                pabaigaRodyta[i] = 0;
+                patvirtinta = true;
+            }
+        }
+        if (patvirtinta) {
+            TsKompl.atnaujink(this);
+        }
         // Fono sargas startuoja CIA: uzdarant programele, kai spausdintuvas
         // ka tik matytas spausdinantis. Spausdintuvas pats nieko neskelbia,
         // tad "atidaryk programele pradejes spausdinti" ir yra sutartis.
@@ -478,6 +497,9 @@ public class MainActivity extends Activity {
             // API pabaigos neturi, tad rodom TAI, KA MATEME PATYS.
             int rusis = TsPranesimas.pabaigosRusis(this, n);
             long end = TsPranesimas.pabaigosLaikas(this, n);
+            if (visible && n >= 0 && n < pabaigaRodyta.length) {
+                pabaigaRodyta[n] = end;
+            }
             boolean gerai = rusis == TsPranesimas.PABAIGA_BAIGTA;
             boolean nematyta = rusis == TsPranesimas.PABAIGA_NEMATYTA;
             String was = TsPranesimas.pabaigosModelis(this, n);
@@ -912,9 +934,8 @@ public class MainActivity extends Activity {
         int kiek = TsSaltinis.skaicius(this);
         String spausdintuvas = TsSaltinis.auto(this) ? getString(R.string.v_byname)
                 : getString(R.string.v_by_ip, kiek);
-        // Trumpai, ne "Every 5 min" (V): puslapyje tai buvo kerpama iki "5-".
-        int[] fonoVardai = {R.string.v_bg_off, R.string.v_bg_30s, R.string.v_bg_2m,
-                R.string.v_bg_5m, R.string.v_bg_10m};
+        int[] fonoVardai = {R.string.bg_off, R.string.bg_const, R.string.bg_2,
+                R.string.bg_5, R.string.bg_10};
         int bg = p.getInt("bg.int", 0);
         String fonas = getString(fonoVardai[(bg >= 0 && bg < fonoVardai.length) ? bg : 0]);
         int ijungta = 0;
@@ -945,12 +966,19 @@ public class MainActivity extends Activity {
         for (String[] e : eil) {
             LinearLayout r = new LinearLayout(this);
             r.setOrientation(LinearLayout.HORIZONTAL);
+            // ETIKETES STULPELIS FIKSUOTAS 80 dp (ismatuota laikrodzio sriftu,
+            // 13 sp): "Background" 71,1 dp + 6 dp tarpas. Anksciau eilute
+            // dalinta svoriais 1 : 1,1, etiketei likdavo 63 dp, ir V mate "Back-".
+            // Reiksmei lieka 66 dp - placiausia "By name" yra 53 dp.
+            // Kelimas ir kirpimas isjungti: jokio "-" ar "..." (V).
             TextView k = new TextView(this);
             k.setText(e[0]);
             k.setTextSize(13);
             k.setTextColor(getColor(R.color.brand_muted));
             k.setGravity(Gravity.END);
             k.setMaxLines(1);
+            k.setHyphenationFrequency(android.text.Layout.HYPHENATION_FREQUENCY_NONE);
+            k.setBreakStrategy(android.text.Layout.BREAK_STRATEGY_SIMPLE);
             k.setPadding(0, 0, (int) (6 * dp), 0);
             TextView v = new TextView(this);
             v.setText(e[1]);
@@ -958,9 +986,11 @@ public class MainActivity extends Activity {
             v.setTextColor(getColor(R.color.brand_text));
             v.setTypeface(null, android.graphics.Typeface.BOLD);
             v.setMaxLines(1);
-            v.setEllipsize(TextUtils.TruncateAt.END);
-            r.addView(k, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-            r.addView(v, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.1f));
+            v.setHyphenationFrequency(android.text.Layout.HYPHENATION_FREQUENCY_NONE);
+            v.setBreakStrategy(android.text.Layout.BREAK_STRATEGY_SIMPLE);
+            r.addView(k, new LinearLayout.LayoutParams((int) (80 * dp),
+                    LinearLayout.LayoutParams.WRAP_CONTENT));
+            r.addView(v, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
             pslEilutes.addView(r);
         }
     }

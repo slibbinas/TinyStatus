@@ -228,7 +228,17 @@ public final class TsPranesimas {
     public static boolean rodomDone(Context c, int n, TsBusena b) {
         long end = pabaigosLaikas(c, n);
         return (b == null || !b.busy) && end > 0
-                && System.currentTimeMillis() - end < DONE_MS;
+                && System.currentTimeMillis() - end < DONE_MS
+                // Jau matyta (V, 2026-09-13): pabaiga rodoma, kol zmogus ja
+                // pamato ekrane ir uzdaro programele. Prirista prie konkretaus
+                // `end`, tad kitas spaudinys vel parodys DONE be jokio nunulinimo.
+                && TsSaltinis.prefs(c).getLong(r(n) + "endAck", 0) != end;
+    }
+
+    /** Pabaiga `end` jau matyta ekrane - daugiau DONE nerodom nei ten, nei komplikacijoje. */
+    public static void patvirtinkPabaiga(Context c, int n, long end) {
+        TsSaltinis.prefs(c).edit().putLong(r(n) + "endAck", end).apply();
+        android.util.Log.i("TINYSTATUS", "pabaiga " + n + " pazymeta matyta (endAck " + end + ")");
     }
 
     /** Ar kuris nors spausdintuvas paskutini karta matytas spausdinantis. */
