@@ -46,6 +46,10 @@ public abstract class TsKompl extends ComplicationProviderService {
 
     /** "DONE" 12 h po pabaigos, "IDLE" kai ramu, kitaip tuscia (= imk is b). */
     static String ramybe(Context c, int n, TsBusena b) {
+        // Neatsako jau seniai - ne IDLE ir ne pasene procentai (V, 2026-09-15).
+        if (TsSaltinis.dingo(c, n, b)) {
+            return "OFF";
+        }
         if (b != null && b.busy) {
             return "";
         }
@@ -75,7 +79,7 @@ public abstract class TsKompl extends ComplicationProviderService {
                 .setTapAction(TsPranesimas.atidaryk(this));
         if (tipas() == ComplicationData.TYPE_RANGED_VALUE) {
             // Ziedas: sluoksniai. Ramybeje tuscias, DONE - pilnas.
-            float v = b.busy ? b.cur : ("DONE".equals(t) ? 1f : 0f);
+            float v = "OFF".equals(t) ? 0f : b.busy ? b.cur : ("DONE".equals(t) ? 1f : 0f);
             float max = b.busy ? Math.max(1, b.total) : 1f;
             d.setMinValue(0f).setMaxValue(max).setValue(v);
         }

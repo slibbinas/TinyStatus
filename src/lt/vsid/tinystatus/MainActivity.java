@@ -365,6 +365,9 @@ public class MainActivity extends Activity {
                     // zmogus ir taip ziuri (tylus=true).
                     TsPranesimas.tikrink(MainActivity.this, n, b, true, REFRESH_MS);
                     TsKompl.atnaujink(MainActivity.this);
+                } else if (TsSaltinis.dingo(MainActivity.this, n, TsSaltinis.atmintineje(MainActivity.this, n))) {
+                    // Komplikacijos turi pereiti i OFF ir be sekmingo skaitymo.
+                    TsKompl.atnaujink(MainActivity.this);
                 }
                 ui.post(new Runnable() {
                     @Override
@@ -416,6 +419,11 @@ public class MainActivity extends Activity {
         }
         long s = (System.currentTimeMillis() - ts) / 1000;
         String kada = (s < 60) ? s + "s" : (s < 3600 ? (s / 60) + "m" : (s / 3600) + "h");
+        if (s * 1000 > TsSaltinis.DINGO_MS) {
+            // Sekundes po minutes nieko nebesako - ekranas jau rodo OFFLINE (V).
+            hint.setText("");
+            return;
+        }
         if (s * 1000 > STALE_MS) {
             hint.setText(getString(R.string.no_answer, s));
             hint.setTextColor(getColor(R.color.brand_warn));
@@ -469,7 +477,9 @@ public class MainActivity extends Activity {
         TsBusena b = TsSaltinis.atmintineje(this, n);
         long age = (b == null) ? Long.MAX_VALUE : now - b.at;
 
-        if (b == null || age > DEAD_MS) {
+        // Dingo - neatsako ilgiau nei TsSaltinis.DINGO_MS (spausdinant - DINGO_SPAUSDINA_MS).
+        // Tada IDLE su "no answer 245s" butu melas (V, 2026-09-15).
+        if (b == null || age > DEAD_MS || TsSaltinis.dingo(this, n, b)) {
             // Tikrai negyvas: nei karto negavom, arba tyli jau labai ilgai.
             //
             // ISSKYRUS pirma bandyma po atidarymo: tada atmintine tiesiog sena,

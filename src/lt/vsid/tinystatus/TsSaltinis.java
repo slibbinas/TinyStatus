@@ -258,7 +258,28 @@ public final class TsSaltinis {
                 Log.w(TAG, host + " nepavyko: " + ex);
             }
         }
+        // Nepavykes bandymas isimenamas - be jo "tyli jau 5 min" nuo "niekas ir
+        // neklause 5 min" neatskirtum (zr. dingo()).
+        prefs(c).edit().putLong("c." + n + ".fail", System.currentTimeMillis()).apply();
         return null;
+    }
+
+    /** Ramus spausdintuvas, tylintis ilgiau - laikomas dingusiu (V, 2026-09-15). */
+    public static final long DINGO_MS = 60_000L;
+    /** Spausdinantis tyli ilgiau: ji uzima ikelimai, SD darbai (zr. MainActivity.DEAD_MS). */
+    public static final long DINGO_SPAUSDINA_MS = 90_000L;
+
+    /**
+     * Ar spausdintuvas DINGES: paskutinis bandymas nepavyko, o paskutinis
+     * atsakymas tuo metu buvo senesnis nei riba (V, 2026-09-15: "jei tiek
+     * neatsake - faktas, kad nebera"). Svarbu - tik PO nepavykusio bandymo:
+     * sena atmintine, kai niekas ir neklause, dar nereiskia, kad spausdintuvo nera.
+     */
+    public static boolean dingo(Context c, int n, TsBusena b) {
+        SharedPreferences p = prefs(c);
+        long ts = p.getLong("c." + n + ".ts", 0), fail = p.getLong("c." + n + ".fail", 0);
+        long riba = (b != null && b.busy) ? DINGO_SPAUSDINA_MS : DINGO_MS;
+        return ts > 0 && fail > ts && fail - ts > riba;
     }
 
     /** Paskutine matyta busena arba null. */
